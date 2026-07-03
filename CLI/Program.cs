@@ -179,12 +179,58 @@ public class Program
     {
         using (var context = new BuildsContext())
         {
-            foreach (var build in context.Builds.Include(b => b.Project).Include(b => b.Environment))
+            var searchProjectName = opts?.ProjectName?.ToLower();
+            List<Build> builds = context.Builds
+                .Include(b => b.Project)
+                .Include(b => b.Environment)
+                .Where(b => searchProjectName == null || b.Project.Name.ToLower() == searchProjectName)
+                .ToList();
+
+            var table = new Table();
+            table.AddColumns("Project", "Integration", "Testing", "Production");
+            foreach (var project in builds.Select(b => b.Project.Name).Distinct().OrderBy(p => p))
             {
-                Console.WriteLine($"{build.Project.Name}: {build.Version} ({build.Environment?.Name ?? "Rejected"})");
+                var integrationBuild = builds.FirstOrDefault(b => b.Project.Name == project && b.Environment?.Name == Integration);
+                var testingBuild = builds.FirstOrDefault(b => b.Project.Name == project && b.Environment?.Name == "Testing");
+                var productionBuild = builds.FirstOrDefault(b => b.Project.Name == project && b.Environment?.Name == "Production");
+                if (opts.Bare)
+                {
+                    table.AddRow(
+                        project,
+                        integrationBuild?.Version ?? string.Empty,
+                        testingBuild?.Version ?? string.Empty,
+                        productionBuild?.Version ?? string.Empty
+                    );
+                }
+                else
+                {
+                    var intPanel = DisplayPanel(integrationBuild, opts.Bare);
+                    var testPanel = DisplayPanel(testingBuild, opts.Bare);
+                    var prodPanel = DisplayPanel(productionBuild, opts.Bare);
+                    table.AddRow(
+                        new Markup(project),
+                        intPanel,
+                        testPanel,
+                        prodPanel
+                    );
+                }
             }
+            AnsiConsole.Write(table);
         }
         return 0;
+    }
+
+    private static Panel DisplayPanel(Build? build, bool bare)
+    {
+        if (build == null)
+        {
+            return new Panel("-").NoBorder();
+        }
+        if (bare)
+        {
+            return new Panel(build.Version.ToString());
+        }
+        return new Panel($"Version: {build.Version}\nDate: {build.Timestamp:yyyy-MM-dd}\nNotes: {build.Notes}");
     }
 
     public static int ListMachines(ListMachinesOptions? opts = null)
