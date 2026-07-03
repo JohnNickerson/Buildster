@@ -1,11 +1,9 @@
 ﻿using System.Reflection;
-using System.Reflection.Metadata.Ecma335;
 using AssimilationSoftware.Buildster.CLI.Options;
 using AssimilationSoftware.Buildster.Core;
 using AssimilationSoftware.Buildster.Core.Model;
 using CommandLine;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion.Internal;
 using Spectre.Console;
 namespace AssimilationSoftware.Buildster.CLI;
 
@@ -43,7 +41,7 @@ public class Program
                 Console.WriteLine($"Cannot find a project with the name {opts.ProjectName}");
                 return 0;
             }
-            var integration = context.FindEnvironment(Integration, createIfNotFound: true);
+            var integration = context.FindEnvironment(Integration, createIfNotFound: true)!;
             var build = new Build()
             {
                 Timestamp = DateTime.Now,
@@ -52,8 +50,9 @@ public class Program
                 Notes = opts.Description,
                 Project = project
             };
-            // TODO: Add tag to source control, push tag to origin if present, update version numbers, update copyright year if needed, add release notes
-            // TODO: Reject any build currently in the environment.
+            // Reject any build currently in the environment.
+            context.Builds.RemoveRange(context.Builds.Where(b => b.ProjectId == project.ProjectId && b.EnvironmentId == integration.EnvironmentId));
+            // TODO: Add tag to source control, push tag to origin if present, update version numbers, update copyright year if needed, add release notes, build packages
             // This will all be ported functionality from Buildster 0.5
             context.Builds.Add(build);
             context.SaveChanges();
@@ -91,7 +90,7 @@ public class Program
             if (opts.SourceFolder is not null)
             {
                 // Add the current computer, if required.
-                var currentMachine = context.Machines.FirstOrDefault(m => m.Name == System.Environment.MachineName);
+                var currentMachine = context.FindMachine(System.Environment.MachineName);
                 if (currentMachine is null)
                 {
                     currentMachine = new Machine() { Name = System.Environment.MachineName };
