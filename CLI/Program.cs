@@ -237,10 +237,13 @@ public class Program
     {
         using (var context = new BuildsContext())
         {
+            var table = new Table();
+            table.AddColumns("Machine", "Description");
             foreach (var machine in context.Machines)
             {
-                Console.WriteLine($"{machine.Name} - {machine.Description}");
+                table.AddRow(machine.Name, machine.Description ?? string.Empty);
             }
+            AnsiConsole.Write(table);
         }
         return 0;
     }
@@ -249,6 +252,7 @@ public class Program
     {
         using (var context = new BuildsContext())
         {
+            // TODO: Display only one line per project, remove the "Machine" column, and display the path for the current machine only.
             Table table = new Table();
             table.AddColumns("Project", "Description", "Machine", "Path");
             foreach (var proj in context.Projects)
@@ -261,6 +265,7 @@ public class Program
                         if (row1)
                         {
                             table.AddRow(proj.Name, proj.Description ?? string.Empty, path.Machine?.Name ?? string.Empty, path.Path);
+                            row1 = false;
                         }
                         else
                         {
@@ -271,7 +276,7 @@ public class Program
                 else
                 {
                     var path = context.FindProjectPath(proj, System.Environment.MachineName);
-                    Console.WriteLine($"{proj.Name} @ {path?.Path}");
+                    Console.WriteLine($"{proj.Name} @ {path?.Path ?? "(no path found)"}");
                 }
             }
             if (opts?.Verbose ?? false)
