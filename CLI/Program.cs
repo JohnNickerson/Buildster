@@ -4,6 +4,7 @@ using AssimilationSoftware.Buildster.Core;
 using AssimilationSoftware.Buildster.Core.Model;
 using CommandLine;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Spectre.Console;
 namespace AssimilationSoftware.Buildster.CLI;
 
@@ -13,6 +14,27 @@ public class Program
 
     public static int Main(string[] args)
     {
+        using (var context = new BuildsContext())
+        {
+            try
+            {
+                // Temporarily mute the EF Core 9 pending model guard during migration
+                //context.Database.ConfigureWarnings(w => w.Ignore(RelationalEventId.PendingModelChangesWarning));
+
+                // Automatically updates the DB to match your migration files
+                context.Database.Migrate();
+
+                Console.WriteLine("Database is up to date!");
+            }
+            catch (Exception ex)
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine($"Database migration failed: {ex.Message}");
+                Console.ResetColor();
+                return 1; // Exit if DB can't initialize
+            }
+        }
+
         Type[] verbTypes = Assembly.GetExecutingAssembly().GetTypes().Where(t => t.GetCustomAttribute<VerbAttribute>() != null).ToArray();
         return Parser.Default.ParseArguments(args, verbTypes)
         .MapResult(
@@ -25,9 +47,65 @@ public class Program
             (ListBuildsOptions opts) => ListBuilds(opts),
             (ListMachinesOptions opts) => ListMachines(opts),
             (ListProjectsOptions opts) => ListProjects(opts),
+            (UpdateBuildOptions opts) => UpdateBuild(opts),
             (UpdateMachineOptions opts) => UpdateMachine(opts),
             (UpdateProjectOptions opts) => UpdateProject(opts),
             errs => 1);
+    }
+
+    private static int UpdateBuild(UpdateBuildOptions opts)
+    {
+        using (var buildRepo = new BuildsContext())
+        {
+            // Check that the build exists.
+            var build = buildRepo.FindDeployedBuild(opts.ProjectName, opts.Environment);
+            if (build == null)
+            {
+                Console.WriteLine($"No build found in '{opts.Environment}' for project '{opts.ProjectName}'.");
+                return 1;
+            }
+            // 1. Get the next environment.
+            // TODO: Set up environment order in the database and use that to determine the next environment. For now, just hardcode it.
+            string? nextEnvironment = GetNextEnvironment(opts.Environment);
+            if (string.IsNullOrEmpty(nextEnvironment))
+            {
+                Console.WriteLine($"No next environment found after '{opts.Environment}'.");
+                return 1;
+            }
+            // 2. Reject any existing build in the next environment.
+            var existingBuild = buildRepo.FindDeployedBuild(opts.ProjectName, nextEnvironment);
+            if (existingBuild != null)
+            {
+                buildRepo.Builds.Remove(existingBuild);
+                Console.WriteLine($"Existing build '{existingBuild.Version}' for project '{opts.ProjectName}' in environment '{nextEnvironment}' rejected.");
+            }
+            // 3. Promote the build to the next environment.
+            var environment = buildRepo.FindEnvironment(nextEnvironment);
+            if (environment == null)
+            {
+                Console.WriteLine($"Could not find environment '{nextEnvironment}'.");
+                return 1;
+            }
+            build.EnvironmentId = environment?.EnvironmentId;
+            buildRepo.Update(build);
+            buildRepo.SaveChanges();
+            Console.WriteLine($"Build '{build.Version}' for project '{opts.ProjectName}' promoted to '{nextEnvironment}'.");
+            ListBuilds(new ListBuildsOptions { ProjectName = opts.ProjectName });
+        }
+        return 0;
+    }
+
+    private static string? GetNextEnvironment(string environment)
+    {
+        switch (environment.ToLower())
+        {
+            case "integration":
+                return "Testing";
+            case "testing":
+                return "Production";
+            default:
+                return null;
+        }
     }
 
     public static int AddBuild(AddBuildOptions opts)
@@ -41,7 +119,7 @@ public class Program
                 Console.WriteLine($"Cannot find a project with the name {opts.ProjectName}");
                 return 0;
             }
-            var integration = context.FindEnvironment(Integration, createIfNotFound: true)!;
+            var integration = context.FindEnvironment(Integration)!;
             var build = new Build()
             {
                 Timestamp = DateTime.Now,

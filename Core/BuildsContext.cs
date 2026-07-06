@@ -20,13 +20,21 @@ public class BuildsContext : DbContext
         optionsBuilder.UseSqlite("Data Source=Buildster.sqlite");
     }
 
-    public Environment? FindEnvironment(string environmentName, bool? createIfNotFound = false)
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        base.OnModelCreating(modelBuilder);
+
+        // Seeding the static Environment reference data
+        modelBuilder.Entity<Environment>().HasData(
+            new Environment { EnvironmentId = 1, Name = "Integration" },
+            new Environment { EnvironmentId = 2, Name = "Testing" },
+            new Environment { EnvironmentId = 3, Name = "Production" }
+        );
+    }
+
+    public Environment? FindEnvironment(string environmentName)
     {
         var result = Environments.FirstOrDefault(e => e.Name.ToLower() == environmentName.ToLower());
-        if (result == null && (createIfNotFound ?? false))
-        {
-            result = Environments.Add(new Environment() { Name = environmentName }).Entity;
-        }
         return result;
     }
 
@@ -65,9 +73,14 @@ public class BuildsContext : DbContext
         return ProjectPaths.FirstOrDefault(pp => pp.ProjectId == proj.ProjectId && pp.Machine.Name.ToLower() == machineName.ToLower());
     }
 
-    public BuildsContext() : base()
+    public Build? FindDeployedBuild(string projectName, string environment)
     {
-        // Apply migrations automatically
-        Database.Migrate();
+        var project = FindProject(projectName);
+        var env = FindEnvironment(environment);
+        if (project == null || env == null)
+        {
+            return null;
+        }
+        return Builds.FirstOrDefault(b => b.ProjectId == project.ProjectId && b.EnvironmentId == env.EnvironmentId);
     }
 }

@@ -9,5 +9,5 @@ public class ListBuildsOptions
         public string ProjectName { get; set; }
 
         [Option('b', "bare", HelpText = "Show only version numbers (bare mode)", Required = false)]
-        public bool Bare { get; set; }
+        public bool Bare { get; set; } = false;
 }

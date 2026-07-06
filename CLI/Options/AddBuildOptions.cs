@@ -1,7 +1,7 @@
 using CommandLine;
 namespace AssimilationSoftware.Buildster.CLI.Options;
 
-[Verb("add-build", HelpText = "Create a new build for a project")]
+[Verb("new-build", HelpText = "Create a new build for a project")]
 public class AddBuildOptions
 {
     [Option('p', "project", HelpText = "The project for the new build", Required = true)]
