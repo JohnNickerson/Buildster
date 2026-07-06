@@ -23,8 +23,6 @@ public class Program
 
                 // Automatically updates the DB to match your migration files
                 context.Database.Migrate();
-
-                Console.WriteLine("Database is up to date!");
             }
             catch (Exception ex)
             {
