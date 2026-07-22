@@ -83,4 +83,18 @@ public class BuildsContext : DbContext
         }
         return Builds.FirstOrDefault(b => b.ProjectId == project.ProjectId && b.EnvironmentId == env.EnvironmentId);
     }
+
+    // TODO: Set up environment order in the database and use that to determine the next environment. For now, just hardcode it.
+    public string? GetNextEnvironment(string environment)
+    {
+        switch (environment.ToLower())
+        {
+            case "integration":
+                return "Testing";
+            case "testing":
+                return "Production";
+            default:
+                return null;
+        }
+    }
 }
