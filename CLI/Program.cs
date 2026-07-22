@@ -1,4 +1,5 @@
 ﻿using System.Reflection;
+using AssimilationSoftware.Buildster.CLI.Controllers;
 using AssimilationSoftware.Buildster.CLI.Options;
 using AssimilationSoftware.Buildster.Core;
 using AssimilationSoftware.Buildster.Core.Model;
@@ -37,16 +38,16 @@ public class Program
         return Parser.Default.ParseArguments(args, verbTypes)
         .MapResult(
             (AddBuildOptions opts) => AddBuild(opts),
-            (AddMachineOptions opts) => AddMachine(opts),
+            (AddMachineOptions opts) => MachinesController.Add(opts),
             (AddProjectOptions opts) => AddProject(opts),
             (DeleteBuildOptions opts) => DeleteBuild(opts),
-            (DeleteMachineOptions opts) => DeleteMachine(opts),
+            (DeleteMachineOptions opts) => MachinesController.Delete(opts),
             (DeleteProjectOptions opts) => DeleteProject(opts),
             (ListBuildsOptions opts) => ListBuilds(opts),
-            (ListMachinesOptions opts) => ListMachines(opts),
+            (ListMachinesOptions opts) => MachinesController.List(opts),
             (ListProjectsOptions opts) => ListProjects(opts),
             (UpdateBuildOptions opts) => UpdateBuild(opts),
-            (UpdateMachineOptions opts) => UpdateMachine(opts),
+            (UpdateMachineOptions opts) => MachinesController.Update(opts),
             (UpdateProjectOptions opts) => UpdateProject(opts),
             errs => 1);
     }
@@ -137,22 +138,6 @@ public class Program
         return 0;
     }
 
-    public static int AddMachine(AddMachineOptions opts)
-    {
-        using (var context = new BuildsContext())
-        {
-            var machine = new Machine()
-            {
-                Name = opts.Name,
-                Description = opts.Description
-            };
-            context.Machines.Add(machine);
-            context.SaveChanges();
-            ListMachines();
-        }
-        return 0;
-    }
-
     public static int AddProject(AddProjectOptions opts)
     {
         using (var context = new BuildsContext())
@@ -207,25 +192,6 @@ public class Program
             context.Builds.Remove(build);
             context.SaveChanges();
             Console.WriteLine($"Build {build.Version} removed from {build.Environment.Name} for {build.Project.Name}");
-        }
-        return 0;
-    }
-
-    public static int DeleteMachine(DeleteMachineOptions opts)
-    {
-        using (var context = new BuildsContext())
-        {
-            var machine = context.Machines.FirstOrDefault(m => m.Name.ToLower() == opts.Name.ToLower());
-            if (machine is null)
-            {
-                Console.WriteLine($"Machine {opts.Name} not found");
-                return 0;
-            }
-            context.Machines.Remove(machine);
-            // Remove related data, too.
-            context.EnvironmentPaths.RemoveRange(context.EnvironmentPaths.Where(ep => ep.MachineId == machine.MachineId));
-            context.ProjectPaths.RemoveRange(context.ProjectPaths.Where(pp => pp.MachineId == machine.MachineId));
-            ListMachines();
         }
         return 0;
     }
@@ -309,21 +275,6 @@ public class Program
         return new Panel($"Version: {build.Version}\nDate: {build.Timestamp:yyyy-MM-dd}\nNotes: {build.Notes}");
     }
 
-    public static int ListMachines(ListMachinesOptions? opts = null)
-    {
-        using (var context = new BuildsContext())
-        {
-            var table = new Table();
-            table.AddColumns("Machine", "Description");
-            foreach (var machine in context.Machines)
-            {
-                table.AddRow(machine.Name, machine.Description ?? string.Empty);
-            }
-            AnsiConsole.Write(table);
-        }
-        return 0;
-    }
-
     public static int ListProjects(ListProjectsOptions? opts = null)
     {
         using (var context = new BuildsContext())
@@ -360,31 +311,6 @@ public class Program
                 AnsiConsole.Write(table);
             }
 
-        }
-        return 0;
-    }
-
-    public static int UpdateMachine(UpdateMachineOptions opts)
-    {
-        // Find the machine.
-        using (var context = new BuildsContext())
-        {
-            var machine = context.FindMachine(opts.OriginalName);
-            if (machine is null)
-            {
-                Console.WriteLine($"Machine not found: {opts.OriginalName}");
-                return 0;
-            }
-            if (!string.IsNullOrWhiteSpace(opts.UpdatedName))
-            {
-                machine.Name = opts.UpdatedName;
-            }
-            if (!string.IsNullOrWhiteSpace(opts.UpdatedDescription))
-            {
-                machine.Description = opts.UpdatedDescription;
-            }
-            context.SaveChanges();
-            ListMachines();
         }
         return 0;
     }
