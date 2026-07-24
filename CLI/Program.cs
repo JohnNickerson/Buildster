@@ -46,6 +46,7 @@ public class Program
             (ListBuildsOptions opts) => BuildsController.List(opts),
             (ListMachinesOptions opts) => MachinesController.List(opts),
             (ListProjectsOptions opts) => ProjectsController.List(opts),
+            (SetCopyrightOptions opts) => ProjectsController.SetCopyright(opts),
             (UpdateBuildOptions opts) => BuildsController.Update(opts),
             (UpdateMachineOptions opts) => MachinesController.Update(opts),
             (UpdateProjectOptions opts) => ProjectsController.Update(opts),

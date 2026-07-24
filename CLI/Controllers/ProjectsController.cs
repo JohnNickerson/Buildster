@@ -138,4 +138,26 @@ public class ProjectsController
         return 0;
     }
 
+    internal static int SetCopyright(SetCopyrightOptions opts)
+    {
+        using (var context = new BuildsContext())
+        {
+            var project = context.FindProject(opts.ProjectName);
+            if (project is null)
+            {
+                Console.WriteLine($"Project not found: {opts.ProjectName}");
+                return 0;
+            }
+            var path = context.FindProjectPath(project, System.Environment.MachineName);
+            if (path is null)
+            {
+                Console.WriteLine($"No source path found for project {opts.ProjectName} on this machine.");
+                return 0;
+            }
+            Core.Utils.VersionInfo.UpdateCopyright(path.Path, opts.CompanyName, DateTime.Now.Year, new ConsoleStatusWriter());
+            context.SaveChanges();
+            List();
+        }
+        return 0;
+    }
 }
