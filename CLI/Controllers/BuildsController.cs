@@ -1,6 +1,7 @@
 using AssimilationSoftware.Buildster.CLI.Options;
 using AssimilationSoftware.Buildster.Core;
 using AssimilationSoftware.Buildster.Core.Model;
+using AssimilationSoftware.Buildster.Core.Utils;
 using Microsoft.EntityFrameworkCore;
 using Spectre.Console;
 
@@ -8,7 +9,7 @@ namespace AssimilationSoftware.Buildster.CLI.Controllers;
 
 public class BuildsController
 {
-    
+
     public static int Add(AddBuildOptions opts)
     {
         using (var context = new BuildsContext())
@@ -29,10 +30,28 @@ public class BuildsController
                 Notes = opts.Description,
                 Project = project
             };
+            var path = context.FindProjectPath(project, System.Environment.MachineName);
+            if (path is null)
+            {
+                Console.WriteLine($"Cannot find a path for project {project.Name} on this machine.");
+                return 0;
+            }
+            var version = new VersionNumber(opts.Version);
+            var statusWriter = new ConsoleStatusWriter();
+
             // Reject any build currently in the environment.
             context.Builds.RemoveRange(context.Builds.Where(b => b.ProjectId == project.ProjectId && b.EnvironmentId == integration.EnvironmentId));
-            // TODO: Add tag to source control, push tag to origin if present, update version numbers, update copyright year if needed, add release notes, build packages
-            // This will all be ported functionality from Buildster 0.5
+            VersionInfo.Update(path.Path, version, statusWriter);
+            // Add tag to source control, push tag to origin if present
+            VersionInfo.Tag(path.Path, version, statusWriter);
+            // Update copyright year if needed
+            VersionInfo.UpdateCopyright(path.Path, VersionInfo.GetCompany(path.Path, statusWriter).FirstOrDefault() ?? string.Empty, DateTime.Now.Year, statusWriter);
+            // Add release notes
+            ReleaseNotes.AppendNotes(path.Path, DateTime.Now, version, opts.Description?.Split(['.'], StringSplitOptions.RemoveEmptyEntries) ?? []);
+
+            // TODO: build the actual packages
+            // (first need to store package info in the database)
+
             context.Builds.Add(build);
             context.SaveChanges();
             List();
