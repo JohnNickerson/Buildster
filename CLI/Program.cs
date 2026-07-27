@@ -38,12 +38,14 @@ public class Program
         return Parser.Default.ParseArguments(args, verbTypes)
         .MapResult(
             (AddBuildOptions opts) => BuildsController.Add(opts),
+            (AddEnvironmentPathOptions opts) => EnvironmentsController.Add(opts),
             (AddMachineOptions opts) => MachinesController.Add(opts),
             (AddProjectOptions opts) => ProjectsController.Add(opts),
             (DeleteBuildOptions opts) => BuildsController.Delete(opts),
             (DeleteMachineOptions opts) => MachinesController.Delete(opts),
             (DeleteProjectOptions opts) => ProjectsController.Delete(opts),
             (ListBuildsOptions opts) => BuildsController.List(opts),
+            (ListEnvironmentPathsOptions opts) => EnvironmentsController.List(opts),
             (ListMachinesOptions opts) => MachinesController.List(opts),
             (ListProjectsOptions opts) => ProjectsController.List(opts),
             (SetCopyrightOptions opts) => ProjectsController.SetCopyright(opts),
