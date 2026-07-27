@@ -248,6 +248,8 @@ namespace AssimilationSoftware.Buildster.Core.Utils
         public static IEnumerable<string> GetCompany(string path, IStatusWriter statusWriter)
         {
             var seenIt = new HashSet<string>();
+
+            // Check AssemblyInfo.cs files
             foreach (var file in Directory.EnumerateFiles(ExtensionMethods.PathExpandCombine(path), "AssemblyInfo.cs", SearchOption.AllDirectories))
             {
                 var lines = File.ReadAllLines(file, Encoding.UTF8).ToList();
@@ -255,7 +257,6 @@ namespace AssimilationSoftware.Buildster.Core.Utils
                 {
                     if (AssemblyAttribute.TryParseExact(lines[x], "AssemblyCompany", out var attribute))
                     {
-                        // Extract and return the version number.
                         var coName = attribute.Value;
                         if (seenIt.Contains(coName))
                         {
@@ -266,13 +267,17 @@ namespace AssimilationSoftware.Buildster.Core.Utils
                     }
                 }
             }
+
+            // Check .csproj files
             foreach (var file in Directory.EnumerateFiles(ExtensionMethods.PathExpandCombine(path), "*.csproj", SearchOption.AllDirectories))
             {
                 XmlDocument xmlDoc = new XmlDocument();
                 xmlDoc.Load(file);
                 var xPath = "Project/PropertyGroup/Company";
                 var company = xmlDoc.SelectSingleNode(xPath);
-                if (company != null)
+
+                // If <Company> exists, use it
+                if (company != null && !string.IsNullOrWhiteSpace(company.InnerText))
                 {
                     if (seenIt.Contains(company.InnerText))
                     {
@@ -281,10 +286,37 @@ namespace AssimilationSoftware.Buildster.Core.Utils
                     seenIt.Add(company.InnerText);
                     yield return company.InnerText;
                 }
+                else
+                {
+                    // Fallback: Check <Copyright> element if <Company> is missing
+                    var copyrightNode = xmlDoc.SelectSingleNode("Project/PropertyGroup/Copyright");
+                    if (copyrightNode != null && !string.IsNullOrWhiteSpace(copyrightNode.InnerText))
+                    {
+                        // Remove standard copyright artifacts
+                        string extractedCompany = copyrightNode.InnerText
+                            .Replace("Copyright", "", StringComparison.OrdinalIgnoreCase)
+                            .Replace("(c)", "", StringComparison.OrdinalIgnoreCase)
+                            .Replace("©", "")
+                            .Trim();
+
+                        // Strip trailing year (e.g., turns "Assimilation Software 2026" into "Assimilation Software")
+                        var match = System.Text.RegularExpressions.Regex.Match(extractedCompany, @"^(.*?)\s+\d{4}$");
+                        if (match.Success)
+                        {
+                            extractedCompany = match.Groups[1].Value.Trim();
+                        }
+
+                        if (!string.IsNullOrWhiteSpace(extractedCompany) && !seenIt.Contains(extractedCompany))
+                        {
+                            seenIt.Add(extractedCompany);
+                            yield return extractedCompany;
+                        }
+                    }
+                }
             }
             yield break;
         }
-
+        
         public static void SetCompany(string path, string company, IStatusWriter statusWriter)
         {
             var newCompany = new AssemblyAttribute("AssemblyCompany", $"{company}");
