@@ -38,7 +38,6 @@ public class Program
         return Parser.Default.ParseArguments(args, verbTypes)
         .MapResult(
             (AddBuildOptions opts) => BuildsController.Add(opts),
-            (AddEnvironmentPathOptions opts) => EnvironmentsController.Add(opts),
             (AddMachineOptions opts) => MachinesController.Add(opts),
             (AddProjectOptions opts) => ProjectsController.Add(opts),
             (DeleteBuildOptions opts) => BuildsController.Delete(opts),
@@ -49,6 +48,7 @@ public class Program
             (ListMachinesOptions opts) => MachinesController.List(opts),
             (ListProjectsOptions opts) => ProjectsController.List(opts),
             (SetCopyrightOptions opts) => ProjectsController.SetCopyright(opts),
+            (SetEnvironmentPathOptions opts) => EnvironmentsController.SetPath(opts),
             (UpdateBuildOptions opts) => BuildsController.Update(opts),
             (UpdateMachineOptions opts) => MachinesController.Update(opts),
             (UpdateProjectOptions opts) => ProjectsController.Update(opts),

@@ -8,7 +8,7 @@ namespace AssimilationSoftware.Buildster.CLI.Controllers;
 
 public class EnvironmentsController
 {
-    public static int Add(AddEnvironmentPathOptions opts)
+    public static int SetPath(SetEnvironmentPathOptions opts)
     {
         using (var context = new BuildsContext())
         {
@@ -30,14 +30,23 @@ public class EnvironmentsController
                 Console.WriteLine($"Could not find environment {opts.EnvironmentName}");
                 return 0;
             }
-            var envPath = new EnvironmentPath()
+            var envPath = context.FindEnvironmentPath(project.Name, machine.Name, env.Name);
+            if (envPath is null)
             {
-                Path = opts.Folder,
-                EnvironmentId = env.EnvironmentId,
-                MachineId = machine.MachineId,
-                ProjectId = project.ProjectId
-            };
-            context.Add(envPath);
+                envPath = new EnvironmentPath()
+                {
+                    Path = opts.Folder,
+                    EnvironmentId = env.EnvironmentId,
+                    MachineId = machine.MachineId,
+                    ProjectId = project.ProjectId
+                };
+                context.Add(envPath);
+            }
+            else
+            {
+                envPath.Path = opts.Folder;
+                context.Update(envPath);
+            }
             context.SaveChanges();
             List(new() { MachineName = opts.MachineName, ProjectName = opts.ProjectName });
             return 0;

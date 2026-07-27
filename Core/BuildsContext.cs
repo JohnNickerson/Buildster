@@ -97,4 +97,12 @@ public class BuildsContext : DbContext
                 return null;
         }
     }
+
+    public EnvironmentPath? FindEnvironmentPath(string project, string machine, string environment)
+    {
+        return EnvironmentPaths.Include(ep => ep.Project).Include(ep => ep.Machine).Include(ep => ep.Environment)
+            .FirstOrDefault(ep => ep.Project.Name.ToLower() == project.ToLower()
+            && ep.Machine.Name.ToLower() == machine.ToLower()
+            && ep.Environment.Name.ToLower() == environment.ToLower());
+    }
 }

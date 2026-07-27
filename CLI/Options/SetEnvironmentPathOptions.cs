@@ -2,8 +2,8 @@ using CommandLine;
 
 namespace AssimilationSoftware.Buildster.CLI.Options;
 
-[Verb("add-env-path", HelpText = "Specify an environment path for a project on a machine")]
-public class AddEnvironmentPathOptions
+[Verb("set-env-path", HelpText = "Specify an environment path for a project on a machine")]
+public class SetEnvironmentPathOptions
 {
     [Option('p', "project", HelpText = "The project context for the environment path", Required = true)]
     public string ProjectName { get; set; }
