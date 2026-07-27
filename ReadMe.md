@@ -13,3 +13,5 @@ The application is targeted for use in Windows environments, with cross-platform
 ## Version History
 - 0.1.0
     Initial repository setup and baseline project structure.
+- 2026-07-27: Build 0.6.1.0
+	- Add environment paths.
