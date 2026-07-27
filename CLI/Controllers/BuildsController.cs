@@ -136,6 +136,8 @@ public class BuildsController
                 .Where(b => searchProjectName == null || b.Project.Name.ToLower() == searchProjectName)
                 .ToList();
 
+            var bare = opts?.Bare ?? false;
+
             var table = new Table();
             table.AddColumns("Project", "Integration", "Testing", "Production");
             foreach (var project in builds.Select(b => b.Project.Name).Distinct().OrderBy(p => p))
@@ -143,7 +145,7 @@ public class BuildsController
                 var integrationBuild = builds.FirstOrDefault(b => b.Project.Name == project && b.Environment?.Name == "Integration");
                 var testingBuild = builds.FirstOrDefault(b => b.Project.Name == project && b.Environment?.Name == "Testing");
                 var productionBuild = builds.FirstOrDefault(b => b.Project.Name == project && b.Environment?.Name == "Production");
-                if (opts.Bare)
+                if (bare)
                 {
                     table.AddRow(
                         project,
@@ -154,9 +156,9 @@ public class BuildsController
                 }
                 else
                 {
-                    var intPanel = DisplayPanel(integrationBuild, opts.Bare);
-                    var testPanel = DisplayPanel(testingBuild, opts.Bare);
-                    var prodPanel = DisplayPanel(productionBuild, opts.Bare);
+                    var intPanel = DisplayPanel(integrationBuild, bare);
+                    var testPanel = DisplayPanel(testingBuild, bare);
+                    var prodPanel = DisplayPanel(productionBuild, bare);
                     table.AddRow(
                         new Markup(project),
                         intPanel,
