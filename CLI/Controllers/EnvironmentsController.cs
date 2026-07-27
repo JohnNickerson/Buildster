@@ -86,7 +86,14 @@ public class EnvironmentsController
             {
                 table.AddRow(row.Key.Project, row.Key.Machine, row.Value.Integration, row.Value.Testing, row.Value.Production);
             }
-            AnsiConsole.Write(table);
+            if (rowData.Count > 0)
+            {
+                AnsiConsole.Write(table);
+            }
+            else
+            {
+                Console.WriteLine("No data to display");
+            }
             return 0;
         }
     }
