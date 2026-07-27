@@ -44,8 +44,9 @@ public class BuildsController
             VersionInfo.Update(path.Path, version, statusWriter);
             // Add tag to source control, push tag to origin if present
             VersionInfo.Tag(path.Path, version, statusWriter);
-            // Update copyright year if needed
-            VersionInfo.UpdateCopyright(path.Path, VersionInfo.GetCompany(path.Path, statusWriter).FirstOrDefault() ?? string.Empty, DateTime.Now.Year, statusWriter);
+            // Update copyright if needed
+            var company = VersionInfo.GetCompany(path.Path, statusWriter).FirstOrDefault() ?? string.Empty;
+            VersionInfo.UpdateCopyright(path.Path, company, DateTime.Now.Year, statusWriter);
             // Add release notes
             ReleaseNotes.AppendNotes(path.Path, DateTime.Now, version, opts.Description?.Split(['.'], StringSplitOptions.RemoveEmptyEntries) ?? []);
 
