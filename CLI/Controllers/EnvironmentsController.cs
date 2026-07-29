@@ -68,12 +68,11 @@ public class EnvironmentsController
             {
                 var key = (ep.Project.Name, ep.Machine.Name);
                 // Add a table row for the project and machine, but what are the paths?
-                if (!rowData.ContainsKey(key))
+                if (!rowData.TryGetValue(key, out var paths))
                 {
                     // Add entry.
-                    rowData[key] = new() { Integration = "-", Testing = "-", Production = "-" };
+                    paths = ("-", "-", "-");
                 }
-                var paths = rowData[key];
                 switch (ep.Environment.Name)
                 {
                     case "Integration":

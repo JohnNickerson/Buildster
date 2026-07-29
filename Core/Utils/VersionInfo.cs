@@ -143,6 +143,7 @@ namespace AssimilationSoftware.Buildster.Core.Utils
         public static void UpdateCopyright(string path, string company, int year, IStatusWriter statusWriter, IFileSystem fileSystem = null)
         {
             fileSystem ??= new FileSystem();
+            SetCompany(path, company, statusWriter, fileSystem);
             var newCopyright = new AssemblyAttribute("AssemblyCopyright", $"Copyright © {company} {year}");
             foreach (var file in fileSystem.Directory.EnumerateFiles(ExtensionMethods.PathExpandCombine(path), "AssemblyInfo.cs", SearchOption.AllDirectories))
             {
@@ -317,12 +318,13 @@ namespace AssimilationSoftware.Buildster.Core.Utils
             yield break;
         }
         
-        public static void SetCompany(string path, string company, IStatusWriter statusWriter)
+        public static void SetCompany(string path, string company, IStatusWriter statusWriter, IFileSystem fileSystem = null)
         {
+            fileSystem ??= new FileSystem();
             var newCompany = new AssemblyAttribute("AssemblyCompany", $"{company}");
-            foreach (var file in Directory.EnumerateFiles(ExtensionMethods.PathExpandCombine(path), "AssemblyInfo.cs", SearchOption.AllDirectories))
+            foreach (var file in fileSystem.Directory.EnumerateFiles(ExtensionMethods.PathExpandCombine(path), "AssemblyInfo.cs", SearchOption.AllDirectories))
             {
-                var lines = File.ReadAllLines(file, Encoding.UTF8).ToList();
+                var lines = fileSystem.File.ReadAllLines(file, Encoding.UTF8).ToList();
                 for (int x = 0; x < lines.Count; x++)
                 {
                     if (AssemblyAttribute.TryParseExact(lines[x], "AssemblyCompany", out var attrib) && attrib.Value != company)
@@ -331,9 +333,9 @@ namespace AssimilationSoftware.Buildster.Core.Utils
                         lines[x] = newCompany.ToString();
                     }
                 }
-                File.WriteAllLines(file, lines, Encoding.UTF8);
+                fileSystem.File.WriteAllLines(file, lines, Encoding.UTF8);
             }
-            foreach (var file in Directory.EnumerateFiles(ExtensionMethods.PathExpandCombine(path), "*.csproj", SearchOption.AllDirectories))
+            foreach (var file in fileSystem.Directory.EnumerateFiles(ExtensionMethods.PathExpandCombine(path), "*.csproj", SearchOption.AllDirectories))
             {
                 XmlDocument xmlDoc = new XmlDocument();
                 xmlDoc.Load(file);
