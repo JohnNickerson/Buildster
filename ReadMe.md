@@ -11,7 +11,5 @@ The application is targeted for use in Windows environments, with cross-platform
 * **Unit Tests:** xUnit.
 
 ## Version History
-- 0.1.0
-    Initial repository setup and baseline project structure.
-- 2026-07-27: Build 0.6.1.0
-	- Add environment paths.
+- 2026-07-29: Build 0.6.0.0
+	- Migrate to Entity Framework.
