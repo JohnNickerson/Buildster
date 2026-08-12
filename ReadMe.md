@@ -13,3 +13,8 @@ The application is targeted for use in Windows environments, with cross-platform
 ## Version History
 - 2026-07-29: Build 0.6.0.0
 	- Migrate to Entity Framework.
+- 2026-08-12: Build 0.6.1.0
+	- Allow manual build date.
+	- Tidy up project list.
+	- Set company name when setting copyright.
+	- Optimise environment paths pivot table construction.
