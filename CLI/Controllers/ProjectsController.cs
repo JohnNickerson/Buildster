@@ -8,7 +8,7 @@ namespace AssimilationSoftware.Buildster.CLI.Controllers;
 
 public class ProjectsController
 {
-    
+
     public static int Add(AddProjectOptions opts)
     {
         using (var context = new BuildsContext())
@@ -102,11 +102,26 @@ public class ProjectsController
     {
         using (var context = new BuildsContext())
         {
-            // TODO: Display only one line per project, remove the "Machine" column, and display the path for the current machine only.
             Table table = new Table();
-            table.AddColumns("Project", "Description", "Machine", "Path");
-            foreach (var proj in context.Projects)
+            if (opts?.Verbose ?? false)
             {
+                table.AddColumns("Project", "Description", "Machine", "Path");
+            }
+            else
+            {
+                table.AddColumns("Project", "Path");
+            }
+            bool firstRow = true;
+            foreach (var proj in context.Projects.OrderBy(p => p.Name))
+            {
+                if (firstRow)
+                {
+                    firstRow = false;
+                }
+                else
+                {
+                    table.AddEmptyRow();
+                }
                 if (opts?.Verbose ?? false)
                 {
                     bool row1 = true;
@@ -126,14 +141,10 @@ public class ProjectsController
                 else
                 {
                     var path = context.FindProjectPath(proj, System.Environment.MachineName);
-                    Console.WriteLine($"{proj.Name} @ {path?.Path ?? "(no path found)"}");
+                    table.AddRow(proj.Name, path?.Path ?? "(no path found)");
                 }
             }
-            if (opts?.Verbose ?? false)
-            {
-                AnsiConsole.Write(table);
-            }
-
+            AnsiConsole.Write(table);
         }
         return 0;
     }
