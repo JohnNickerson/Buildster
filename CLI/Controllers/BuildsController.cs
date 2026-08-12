@@ -24,7 +24,7 @@ public class BuildsController
             var integration = context.FindEnvironment("Integration")!;
             var build = new Build()
             {
-                Timestamp = DateTime.Now,
+                Timestamp = opts.BuildDate ?? DateTime.Now,
                 Version = opts.Version,
                 Environment = integration,
                 Notes = opts.Description,

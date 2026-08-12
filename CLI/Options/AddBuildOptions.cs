@@ -12,4 +12,7 @@ public class AddBuildOptions
 
     [Option('v', "version", HelpText = "The new version number", Required = true)]
     public required string Version { get; set; }
+
+    [Option('d', "date", HelpText = "The date of the build (yyyy-MM-dd)")]
+    public DateTime? BuildDate { get; set; }
 }
