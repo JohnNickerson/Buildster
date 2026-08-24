@@ -8,7 +8,7 @@ namespace AssimilationSoftware.Buildster.CLI.Controllers;
 
 public class EnvironmentsController
 {
-    public static int SetPath(SetEnvironmentPathOptions opts)
+    public int SetPath(SetEnvironmentPathOptions opts)
     {
         using (var context = new BuildsContext())
         {
@@ -53,7 +53,7 @@ public class EnvironmentsController
         }
     }
 
-    internal static int List(ListEnvironmentPathsOptions opts)
+    internal int List(ListEnvironmentPathsOptions opts)
     {
         using (var context = new BuildsContext())
         {

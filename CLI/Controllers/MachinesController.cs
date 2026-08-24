@@ -8,7 +8,7 @@ namespace AssimilationSoftware.Buildster.CLI.Controllers;
 public class MachinesController
 {
 
-    public static int Add(AddMachineOptions opts)
+    public int Add(AddMachineOptions opts)
     {
         using (var context = new BuildsContext())
         {
@@ -24,7 +24,7 @@ public class MachinesController
         return 0;
     }
 
-    public static int Delete(DeleteMachineOptions opts)
+    public int Delete(DeleteMachineOptions opts)
     {
         using (var context = new BuildsContext())
         {
@@ -43,7 +43,7 @@ public class MachinesController
         return 0;
     }
 
-    public static int Update(UpdateMachineOptions opts)
+    public int Update(UpdateMachineOptions opts)
     {
         // Find the machine.
         using (var context = new BuildsContext())
@@ -68,7 +68,7 @@ public class MachinesController
         return 0;
     }
 
-    public static int List(ListMachinesOptions? opts = null)
+    public int List(ListMachinesOptions? opts = null)
     {
         using (var context = new BuildsContext())
         {

@@ -9,7 +9,7 @@ namespace AssimilationSoftware.Buildster.CLI.Controllers;
 public class ProjectsController
 {
 
-    public static int Add(AddProjectOptions opts)
+    public int Add(AddProjectOptions opts)
     {
         using (var context = new BuildsContext())
         {
@@ -42,7 +42,7 @@ public class ProjectsController
         return 0;
     }
 
-    public static int Delete(DeleteProjectOptions opts)
+    public int Delete(DeleteProjectOptions opts)
     {
         using (var context = new BuildsContext())
         {
@@ -63,7 +63,7 @@ public class ProjectsController
         return 0;
     }
 
-    public static int Update(UpdateProjectOptions opts)
+    public int Update(UpdateProjectOptions opts)
     {
         using (var context = new BuildsContext())
         {
@@ -98,7 +98,7 @@ public class ProjectsController
         return 0;
     }
 
-    public static int List(ListProjectsOptions? opts = null)
+    public int List(ListProjectsOptions? opts = null)
     {
         using (var context = new BuildsContext())
         {
@@ -149,7 +149,7 @@ public class ProjectsController
         return 0;
     }
 
-    internal static int SetCopyright(SetCopyrightOptions opts)
+    internal int SetCopyright(SetCopyrightOptions opts)
     {
         using (var context = new BuildsContext())
         {

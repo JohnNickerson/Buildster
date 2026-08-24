@@ -10,7 +10,7 @@ namespace AssimilationSoftware.Buildster.CLI.Controllers;
 public class BuildsController
 {
 
-    public static int Add(AddBuildOptions opts)
+    public int Add(AddBuildOptions opts)
     {
         using (var context = new BuildsContext())
         {
@@ -60,7 +60,7 @@ public class BuildsController
         return 0;
     }
 
-    public static int Delete(DeleteBuildOptions opts)
+    public int Delete(DeleteBuildOptions opts)
     {
         using (var context = new BuildsContext())
         {
@@ -85,7 +85,7 @@ public class BuildsController
         return 0;
     }
 
-    public static int Update(UpdateBuildOptions opts)
+    public int Update(UpdateBuildOptions opts)
     {
         using (var buildRepo = new BuildsContext())
         {
@@ -126,7 +126,7 @@ public class BuildsController
         return 0;
     }
 
-    public static int List(ListBuildsOptions? opts = null)
+    public int List(ListBuildsOptions? opts = null)
     {
         using (var context = new BuildsContext())
         {
