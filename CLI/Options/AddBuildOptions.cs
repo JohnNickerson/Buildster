@@ -15,4 +15,7 @@ public class AddBuildOptions
 
     [Option('d', "date", HelpText = "The date of the build (yyyy-MM-dd)")]
     public DateTime? BuildDate { get; set; }
+
+    [Option("data-only", HelpText = "Only record data about the build, don't take any file actions")]
+    public bool DataOnly { get; set; } = false;
 }

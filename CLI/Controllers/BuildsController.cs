@@ -41,17 +41,20 @@ public class BuildsController
 
             // Reject any build currently in the environment.
             context.Builds.RemoveRange(context.Builds.Where(b => b.ProjectId == project.ProjectId && b.EnvironmentId == integration.EnvironmentId));
-            VersionInfo.Update(path.Path, version, statusWriter);
-            // Add tag to source control, push tag to origin if present
-            VersionInfo.Tag(path.Path, version, statusWriter);
-            // Update copyright if needed
-            var company = VersionInfo.GetCompany(path.Path, statusWriter).FirstOrDefault() ?? string.Empty;
-            VersionInfo.UpdateCopyright(path.Path, company, DateTime.Now.Year, statusWriter);
-            // Add release notes
-            ReleaseNotes.AppendNotes(path.Path, DateTime.Now, version, opts.Description?.Split(['.'], StringSplitOptions.RemoveEmptyEntries) ?? []);
-
-            // TODO: build the actual packages
-            // (first need to store package info in the database)
+            
+            if (!opts.DataOnly)
+            {
+                VersionInfo.Update(path.Path, version, statusWriter);
+                // Add tag to source control, push tag to origin if present
+                VersionInfo.Tag(path.Path, version, statusWriter);
+                // Update copyright if needed
+                var company = VersionInfo.GetCompany(path.Path, statusWriter).FirstOrDefault() ?? string.Empty;
+                VersionInfo.UpdateCopyright(path.Path, company, DateTime.Now.Year, statusWriter);
+                // Add release notes
+                ReleaseNotes.AppendNotes(path.Path, DateTime.Now, version, opts.Description?.Split(['.'], StringSplitOptions.RemoveEmptyEntries) ?? []);
+                // TODO: build the actual packages
+                // (first need to store package info in the database)
+            }
 
             context.Builds.Add(build);
             context.SaveChanges();
