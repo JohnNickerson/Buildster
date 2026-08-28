@@ -18,3 +18,5 @@ The application is targeted for use in Windows environments, with cross-platform
 	- Tidy up project list.
 	- Set company name when setting copyright.
 	- Optimise environment paths pivot table construction.
+- 2026-08-26: Build 0.6.2.0
+	- Allow adding new builds as tracking data only.
