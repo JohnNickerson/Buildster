@@ -28,7 +28,7 @@ public class PackagesController
                 }
                 firstRow = false;
 
-                table.AddRow(package.Project.Name, package.PackageId.ToString(), package.IsNuGet ? "NuGet" : "Library", package.SourceFolder, package.DeployFolder);
+                table.AddRow(package.Project.Name, package.PackageId.ToString(), package.IsNuGet ? "NuGet" : "Executable", package.SourceFolder, package.DeployFolder);
             }
             if (packageList.Any())
             {
@@ -64,5 +64,24 @@ public class PackagesController
             List(new ListPackagesOptions() { ProjectName = opts.ProjectName });
         }
         return 0;
+    }
+
+    internal void Delete(DeletePackageOptions opts)
+    {
+        using (var context = new BuildsContext())
+        {
+            var package = string.IsNullOrEmpty(opts.PackageSource)
+                ? context.Packages.First(p => p.PackageId == opts.PackageId)
+                : context.FindPackageBySource(opts.ProjectName, opts.PackageSource);
+            if (package is null)
+            {
+                Console.WriteLine("Package not found");
+                return;
+            }
+            context.Packages.Remove(package);
+            Console.WriteLine($"Removed package {package.SourceFolder} from {opts.ProjectName}");
+            context.SaveChanges();
+            List();
+        }
     }
 }
