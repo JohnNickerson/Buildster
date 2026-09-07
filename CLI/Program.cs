@@ -35,23 +35,30 @@ public class Program
         }
 
         Type[] verbTypes = Assembly.GetExecutingAssembly().GetTypes().Where(t => t.GetCustomAttribute<VerbAttribute>() != null).ToArray();
-        return Parser.Default.ParseArguments(args, verbTypes)
-        .MapResult(
-            (AddBuildOptions opts) => new BuildsController().Add(opts),
-            (AddMachineOptions opts) => new MachinesController().Add(opts),
-            (AddProjectOptions opts) => new ProjectsController().Add(opts),
-            (DeleteBuildOptions opts) => new BuildsController().Delete(opts),
-            (DeleteMachineOptions opts) => new MachinesController().Delete(opts),
-            (DeleteProjectOptions opts) => new ProjectsController().Delete(opts),
-            (ListBuildsOptions opts) => new BuildsController().List(opts),
-            (ListEnvironmentPathsOptions opts) => new EnvironmentsController().List(opts),
-            (ListMachinesOptions opts) => new MachinesController().List(opts),
-            (ListProjectsOptions opts) => new ProjectsController().List(opts),
-            (SetCopyrightOptions opts) => new ProjectsController().SetCopyright(opts),
-            (SetEnvironmentPathOptions opts) => new EnvironmentsController().SetPath(opts),
-            (UpdateBuildOptions opts) => new BuildsController().Update(opts),
-            (UpdateMachineOptions opts) => new MachinesController().Update(opts),
-            (UpdateProjectOptions opts) => new ProjectsController().Update(opts),
-            errs => 1);
+        Parser.Default.ParseArguments(args, verbTypes)
+            .WithParsed<AddBuildOptions>(opts => new BuildsController().Add(opts))
+            .WithParsed<AddMachineOptions>(opts => new MachinesController().Add(opts))
+            .WithParsed<AddPackageOptions>(opts => new PackagesController().Add(opts))
+            .WithParsed<AddProjectOptions>(opts => new ProjectsController().Add(opts))
+            .WithParsed<DeleteBuildOptions>(opts => new BuildsController().Delete(opts))
+            .WithParsed<DeleteMachineOptions>(opts => new MachinesController().Delete(opts))
+            .WithParsed<DeleteProjectOptions>(opts => new ProjectsController().Delete(opts))
+            .WithParsed<ListBuildsOptions>(opts => new BuildsController().List(opts))
+            .WithParsed<ListEnvironmentPathsOptions>(opts => new EnvironmentsController().List(opts))
+            .WithParsed<ListMachinesOptions>(opts => new MachinesController().List(opts))
+            .WithParsed<ListPackagesOptions>(opts => new PackagesController().List(opts))
+            .WithParsed<ListProjectsOptions>(opts => new ProjectsController().List(opts))
+            .WithParsed<SetCopyrightOptions>(opts => new ProjectsController().SetCopyright(opts))
+            .WithParsed<SetEnvironmentPathOptions>(opts => new EnvironmentsController().SetPath(opts))
+            .WithParsed<UpdateBuildOptions>(opts => new BuildsController().Update(opts))
+            .WithParsed<UpdateMachineOptions>(opts => new MachinesController().Update(opts))
+            .WithParsed<UpdateProjectOptions>(opts => new ProjectsController().Update(opts))
+            .WithNotParsed(errs => HandleErrors(errs));
+        return 0;
+    }
+
+    public static int HandleErrors(object errors)
+    {
+        return 1;
     }
 }
