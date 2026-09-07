@@ -42,6 +42,7 @@ public class Program
             .WithParsed<AddProjectOptions>(opts => new ProjectsController().Add(opts))
             .WithParsed<DeleteBuildOptions>(opts => new BuildsController().Delete(opts))
             .WithParsed<DeleteMachineOptions>(opts => new MachinesController().Delete(opts))
+            .WithParsed<DeletePackageOptions>(opts => new PackagesController().Delete(opts))
             .WithParsed<DeleteProjectOptions>(opts => new ProjectsController().Delete(opts))
             .WithParsed<ListBuildsOptions>(opts => new BuildsController().List(opts))
             .WithParsed<ListEnvironmentPathsOptions>(opts => new EnvironmentsController().List(opts))

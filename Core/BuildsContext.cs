@@ -105,4 +105,11 @@ public class BuildsContext : DbContext
             && ep.Machine.Name.ToLower() == machine.ToLower()
             && ep.Environment.Name.ToLower() == environment.ToLower());
     }
+
+    public Package? FindPackageBySource(string project, string packageSource)
+    {
+        return Packages.Include(p => p.Project)
+            .FirstOrDefault(p => p.Project.Name.ToLower() == project.ToLower()
+            && p.SourceFolder.ToLower() == packageSource.ToLower());
+    }
 }
