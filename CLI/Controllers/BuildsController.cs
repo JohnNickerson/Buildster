@@ -4,6 +4,7 @@ using AssimilationSoftware.Buildster.Core.Model;
 using AssimilationSoftware.Buildster.Core.Utils;
 using Microsoft.EntityFrameworkCore;
 using Spectre.Console;
+using Spectre.Console.Rendering;
 
 namespace AssimilationSoftware.Buildster.CLI.Controllers;
 
@@ -141,34 +142,53 @@ public class BuildsController
                 .ToList();
 
             var bare = opts?.Bare ?? false;
+            var pending = opts?.Pending ?? false;
 
             var table = new Table();
-            table.AddColumns("Project", "Integration", "Testing", "Production");
-            foreach (var project in builds.Select(b => b.Project.Name).Distinct().OrderBy(p => p))
+            if (pending)
             {
+                table.AddColumns("Project", "Pending", "Integration", "Testing", "Production");
+            }
+            else
+            {
+                table.AddColumns("Project", "Integration", "Testing", "Production");
+            }
+            foreach (var project in context.Projects.Select(p => p.Name).Distinct().OrderBy(p => p))
+            {
+                IEnumerable<string> gitMessages = Enumerable.Empty<string>();
+                if (pending)
+                {
+                    var path = context.FindProjectPath(context.FindProject(project)!, System.Environment.MachineName);
+                    // Get recent Git history for the main branch and show a list of commit messages
+                    gitMessages = VersionInfo.GetRecentGitHistory(path.Path);
+                }
                 var integrationBuild = builds.FirstOrDefault(b => b.Project.Name == project && b.Environment?.Name == "Integration");
                 var testingBuild = builds.FirstOrDefault(b => b.Project.Name == project && b.Environment?.Name == "Testing");
                 var productionBuild = builds.FirstOrDefault(b => b.Project.Name == project && b.Environment?.Name == "Production");
                 if (bare)
                 {
-                    table.AddRow(
-                        project,
-                        integrationBuild?.Version ?? string.Empty,
-                        testingBuild?.Version ?? string.Empty,
-                        productionBuild?.Version ?? string.Empty
-                    );
+                    var row = new List<string> { project };
+                    if (pending && gitMessages.Any())
+                    {
+                        row.Add(string.Join(". ", gitMessages));
+                    }
+                    row.Add(integrationBuild?.Version ?? string.Empty);
+                    row.Add(testingBuild?.Version ?? string.Empty);
+                    row.Add(productionBuild?.Version ?? string.Empty);
+                    table.AddRow(row.ToArray());
                 }
                 else
                 {
-                    var intPanel = DisplayPanel(integrationBuild, bare);
-                    var testPanel = DisplayPanel(testingBuild, bare);
-                    var prodPanel = DisplayPanel(productionBuild, bare);
-                    table.AddRow(
-                        new Markup(project),
-                        intPanel,
-                        testPanel,
-                        prodPanel
-                    );
+                    var row = new List<IRenderable> { new Markup(project) };
+                    if (pending && gitMessages.Any())
+                    {
+                        var pendingPanel = new Panel(string.Join(". ", gitMessages));
+                        row.Add(pendingPanel);
+                    }
+                    row.Add(DisplayPanel(integrationBuild, bare));
+                    row.Add(DisplayPanel(testingBuild, bare));
+                    row.Add(DisplayPanel(productionBuild, bare));
+                    table.AddRow(row.ToArray());
                 }
             }
             AnsiConsole.Write(table);

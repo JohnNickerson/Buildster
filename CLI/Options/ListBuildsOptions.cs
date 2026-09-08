@@ -10,4 +10,7 @@ public class ListBuildsOptions
 
         [Option('b', "bare", HelpText = "Show only version numbers (bare mode)", Required = false)]
         public bool Bare { get; set; } = false;
+
+        [Option("pending", HelpText = "Show only builds that are pending creation, based on Git history", Required = false)]
+        public bool Pending { get; set; } = false;
 }
