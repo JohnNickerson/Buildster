@@ -170,7 +170,7 @@ public class BuildsController
                     var row = new List<string> { project };
                     if (pending && gitMessages.Any())
                     {
-                        row.Add(string.Join(". ", gitMessages));
+                        row.Add(string.Join(System.Environment.NewLine, gitMessages));
                     }
                     row.Add(integrationBuild?.Version ?? string.Empty);
                     row.Add(testingBuild?.Version ?? string.Empty);
@@ -182,7 +182,7 @@ public class BuildsController
                     var row = new List<IRenderable> { new Markup(project) };
                     if (pending && gitMessages.Any())
                     {
-                        var pendingPanel = new Panel(string.Join(". ", gitMessages));
+                        var pendingPanel = new Panel(string.Join(System.Environment.NewLine, gitMessages));
                         row.Add(pendingPanel);
                     }
                     row.Add(DisplayPanel(integrationBuild, bare));
