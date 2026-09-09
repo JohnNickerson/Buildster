@@ -4,10 +4,10 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <Copyright>Copyright © Assimilation Software 2026</Copyright>
-    <Version>0.6.2.0</Version>
-    <FileVersion>0.6.2.0</FileVersion>
-    <InformationalVersion>0.6.2.0</InformationalVersion>
-    <PackageVersion>0.6.2.0</PackageVersion>
+    <Version>0.6.3.2</Version>
+    <FileVersion>0.6.3.2</FileVersion>
+    <InformationalVersion>0.6.3.2</InformationalVersion>
+    <PackageVersion>0.6.3.2</PackageVersion>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.11" />
