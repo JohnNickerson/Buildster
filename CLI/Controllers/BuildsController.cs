@@ -173,7 +173,7 @@ public class BuildsController
                     var row = new List<string> { project };
                     if (pending)
                     {
-                        row.Add(string.Join(System.Environment.NewLine, gitMessages));
+                        row.Add(Markup.Escape(string.Join(System.Environment.NewLine, gitMessages)));
                     }
                     row.Add(integrationBuild?.Version ?? string.Empty);
                     row.Add(testingBuild?.Version ?? string.Empty);
@@ -191,7 +191,7 @@ public class BuildsController
                         }
                         else
                         {
-                            var pendingPanel = new Panel(string.Join(System.Environment.NewLine, gitMessages));
+                            var pendingPanel = new Panel(Markup.Escape(string.Join(System.Environment.NewLine, gitMessages)));
                             row.Add(pendingPanel);
                         }
                     }
