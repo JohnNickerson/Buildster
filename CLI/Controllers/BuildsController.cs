@@ -42,7 +42,7 @@ public class BuildsController
 
             // Reject any build currently in the environment.
             context.Builds.RemoveRange(context.Builds.Where(b => b.ProjectId == project.ProjectId && b.EnvironmentId == integration.EnvironmentId));
-            
+
             if (!opts.DataOnly)
             {
                 VersionInfo.Update(path.Path, version, statusWriter);
@@ -160,7 +160,10 @@ public class BuildsController
                 {
                     var path = context.FindProjectPath(context.FindProject(project)!, System.Environment.MachineName);
                     // Get recent Git history for the main branch and show a list of commit messages
-                    gitMessages = VersionInfo.GetRecentGitHistory(path.Path);
+                    if (Directory.Exists(path.Path))
+                    {
+                        gitMessages = VersionInfo.GetRecentGitHistory(path.Path);
+                    }
                 }
                 var integrationBuild = builds.FirstOrDefault(b => b.Project.Name == project && b.Environment?.Name == "Integration");
                 var testingBuild = builds.FirstOrDefault(b => b.Project.Name == project && b.Environment?.Name == "Testing");
@@ -168,7 +171,7 @@ public class BuildsController
                 if (bare)
                 {
                     var row = new List<string> { project };
-                    if (pending && gitMessages.Any())
+                    if (pending)
                     {
                         row.Add(string.Join(System.Environment.NewLine, gitMessages));
                     }
@@ -180,10 +183,17 @@ public class BuildsController
                 else
                 {
                     var row = new List<IRenderable> { new Markup(project) };
-                    if (pending && gitMessages.Any())
+                    if (pending)
                     {
-                        var pendingPanel = new Panel(string.Join(System.Environment.NewLine, gitMessages));
-                        row.Add(pendingPanel);
+                        if (!gitMessages.Any())
+                        {
+                            row.Add(new Markup("-"));
+                        }
+                        else
+                        {
+                            var pendingPanel = new Panel(string.Join(System.Environment.NewLine, gitMessages));
+                            row.Add(pendingPanel);
+                        }
                     }
                     row.Add(DisplayPanel(integrationBuild, bare));
                     row.Add(DisplayPanel(testingBuild, bare));
