@@ -352,9 +352,19 @@ namespace AssimilationSoftware.Buildster.Core.Utils
 
         public static IEnumerable<string> GetRecentGitHistory(string path, int daysBack = 7)
         {
-            var gitRepo = new Repository(ExtensionMethods.PathExpandCombine(path));
+            using var gitRepo = new Repository(ExtensionMethods.PathExpandCombine(path));
+
+            // Retrieve the main branch (or master as fallback if needed)
+            var mainBranch = gitRepo.Branches["main"] ?? gitRepo.Branches["master"];
+            if (mainBranch == null)
+            {
+                yield break;
+            }
+
             var cutoffDate = DateTimeOffset.Now.AddDays(-daysBack);
-            var commits = gitRepo.Commits
+
+            // Query commits starting from the tip of main branch
+            var commits = mainBranch.Commits
                 .Where(c => c.Committer.When >= cutoffDate)
                 .OrderByDescending(c => c.Committer.When)
                 .ToList();
