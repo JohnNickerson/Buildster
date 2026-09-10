@@ -47,7 +47,7 @@ public class BuildsController
             {
                 VersionInfo.Update(path.Path, version, statusWriter);
                 // Add tag to source control, push tag to origin if present
-                VersionInfo.Tag(path.Path, version, statusWriter);
+                GitUtils.Tag(path.Path, version, statusWriter);
                 // Update copyright if needed
                 var company = VersionInfo.GetCompany(path.Path, statusWriter).FirstOrDefault() ?? string.Empty;
                 VersionInfo.UpdateCopyright(path.Path, company, DateTime.Now.Year, statusWriter);
@@ -162,7 +162,7 @@ public class BuildsController
                     // Get recent Git history for the main branch and show a list of commit messages
                     if (Directory.Exists(path.Path))
                     {
-                        gitMessages = VersionInfo.GetRecentGitHistory(path.Path);
+                        gitMessages = GitUtils.GetRecentGitHistory(path.Path);
                     }
                 }
                 var integrationBuild = builds.FirstOrDefault(b => b.Project.Name == project && b.Environment?.Name == "Integration");
