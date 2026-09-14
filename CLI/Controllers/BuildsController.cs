@@ -84,6 +84,10 @@ public class BuildsController
             // TODO: Perhaps mark a build as rejected once we have build history in place. Will require a new property.
             context.Builds.Remove(build);
             context.SaveChanges();
+            if (!opts.DataOnly)
+            {
+                // TODO: Attempt to delete the build files from disk.
+            }
             Console.WriteLine($"Build {build.Version} removed from {build.Environment.Name} for {build.Project.Name}");
         }
         return 0;
