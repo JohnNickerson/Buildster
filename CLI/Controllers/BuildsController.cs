@@ -112,6 +112,10 @@ public class BuildsController
             if (existingBuild != null)
             {
                 buildRepo.Builds.Remove(existingBuild);
+                if (!opts.DataOnly)
+                {
+                    // TODO: Delete existing files.
+                }
                 Console.WriteLine($"Existing build '{existingBuild.Version}' for project '{opts.ProjectName}' in environment '{nextEnvironment}' rejected.");
             }
             // 3. Promote the build to the next environment.
@@ -124,6 +128,10 @@ public class BuildsController
             build.EnvironmentId = environment?.EnvironmentId;
             buildRepo.Update(build);
             buildRepo.SaveChanges();
+            if (!opts.DataOnly)
+            {
+                // TODO: Move build files to next environment.
+            }
             Console.WriteLine($"Build '{build.Version}' for project '{opts.ProjectName}' promoted to '{nextEnvironment}'.");
             List(new ListBuildsOptions { ProjectName = opts.ProjectName });
         }
