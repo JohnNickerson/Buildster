@@ -88,7 +88,14 @@ public class BuildsController
             {
                 // TODO: Attempt to delete the build files from disk.
             }
-            Console.WriteLine($"Build {build.Version} removed from {build.Environment.Name} for {build.Project.Name}");
+            if (build.Environment is null)
+            {
+                Console.WriteLine($"Build {build.Version} removed from {build.Project.Name}");
+            }
+            else
+            {
+                Console.WriteLine($"Build {build.Version} removed from {build.Environment.Name} for {build.Project.Name}");
+            }
         }
         return 0;
     }
