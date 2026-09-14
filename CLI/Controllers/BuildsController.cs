@@ -84,7 +84,18 @@ public class BuildsController
             // TODO: Perhaps mark a build as rejected once we have build history in place. Will require a new property.
             context.Builds.Remove(build);
             context.SaveChanges();
-            Console.WriteLine($"Build {build.Version} removed from {build.Environment.Name} for {build.Project.Name}");
+            if (!opts.DataOnly)
+            {
+                // TODO: Attempt to delete the build files from disk.
+            }
+            if (build.Environment is null)
+            {
+                Console.WriteLine($"Build {build.Version} removed from {build.Project.Name}");
+            }
+            else
+            {
+                Console.WriteLine($"Build {build.Version} removed from {build.Environment.Name} for {build.Project.Name}");
+            }
         }
         return 0;
     }
@@ -112,6 +123,10 @@ public class BuildsController
             if (existingBuild != null)
             {
                 buildRepo.Builds.Remove(existingBuild);
+                if (!opts.DataOnly)
+                {
+                    // TODO: Delete existing files.
+                }
                 Console.WriteLine($"Existing build '{existingBuild.Version}' for project '{opts.ProjectName}' in environment '{nextEnvironment}' rejected.");
             }
             // 3. Promote the build to the next environment.
@@ -124,6 +139,10 @@ public class BuildsController
             build.EnvironmentId = environment?.EnvironmentId;
             buildRepo.Update(build);
             buildRepo.SaveChanges();
+            if (!opts.DataOnly)
+            {
+                // TODO: Move build files to next environment.
+            }
             Console.WriteLine($"Build '{build.Version}' for project '{opts.ProjectName}' promoted to '{nextEnvironment}'.");
             List(new ListBuildsOptions { ProjectName = opts.ProjectName });
         }

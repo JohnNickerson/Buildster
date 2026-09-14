@@ -9,4 +9,7 @@ public class DeleteBuildOptions
     
     [Option('e', "env", HelpText = "The current environment where the build exists", Required = true)]
     public string EnvironmentName{ get; set; }
+
+    [Option("data-only", HelpText = "Only record data about the build, don't take any file actions")]
+    public bool DataOnly { get; set; } = false;
 }
