@@ -153,6 +153,7 @@ public class BuildsController
             {
                 table.AddColumns("Project", "Integration", "Testing", "Production");
             }
+            var firstRow = true;
             foreach (var project in context.Projects.Select(p => p.Name).Distinct().OrderBy(p => p))
             {
                 IEnumerable<string> gitMessages = Enumerable.Empty<string>();
@@ -178,6 +179,10 @@ public class BuildsController
                     row.Add(integrationBuild?.Version ?? string.Empty);
                     row.Add(testingBuild?.Version ?? string.Empty);
                     row.Add(productionBuild?.Version ?? string.Empty);
+                    if (!firstRow)
+                    {
+                        table.AddEmptyRow();
+                    }
                     table.AddRow(row.ToArray());
                 }
                 else
@@ -200,6 +205,7 @@ public class BuildsController
                     row.Add(DisplayPanel(productionBuild, bare));
                     table.AddRow(row.ToArray());
                 }
+                firstRow = false;
             }
             AnsiConsole.Write(table);
         }
