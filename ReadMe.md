@@ -20,6 +20,8 @@ The application is targeted for use in Windows environments, with cross-platform
 	- Optimise environment paths pivot table construction.
 - 2026-08-26: Build 0.6.2.0
 	- Allow adding new builds as tracking data only.
+- 2026-09-09: Build 0.6.3.0
+	- Show recent Git history as pending build info.
 - 2026-09-09: Build 0.6.3.1
 	- Display columns correctly when no Git history is found.
 - 2026-09-09: Build 0.6.3.2
