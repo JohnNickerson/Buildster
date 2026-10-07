@@ -15,9 +15,21 @@ public class BuildsContext : DbContext
     public DbSet<Project> Projects { get; set; }
     public DbSet<ProjectPath> ProjectPaths { get; set; }
 
+    public BuildsContext()
+    {    
+    }
+
+    public BuildsContext(DbContextOptions<BuildsContext> options) : base(options)
+    {
+    }
+
+
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
-        optionsBuilder.UseSqlite("Data Source=Buildster.sqlite");
+        if (!optionsBuilder.IsConfigured)
+        {
+            optionsBuilder.UseSqlite("Data Source=Buildster.sqlite");
+        }
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
