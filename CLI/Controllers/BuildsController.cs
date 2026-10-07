@@ -188,7 +188,7 @@ public class BuildsController
                 table.AddColumns("Project", "Integration", "Testing", "Production");
             }
             var firstRow = true;
-            foreach (var project in context.Projects.Select(p => p.Name).Distinct().OrderBy(p => p))
+            foreach (var project in context.Projects.Where(b => searchProjectName == null || b.Name.ToLower() == searchProjectName).Select(p => p.Name).Distinct().OrderBy(p => p))
             {
                 IEnumerable<string> gitMessages = Enumerable.Empty<string>();
                 if (pending)
