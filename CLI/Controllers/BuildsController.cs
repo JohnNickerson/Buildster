@@ -10,6 +10,21 @@ namespace AssimilationSoftware.Buildster.CLI.Controllers;
 
 public class BuildsController
 {
+    private DbContextOptions _contextOptions;
+
+    public BuildsController(DbContextOptions<BuildsContext>? dbContextOptions = null)
+    {
+        if (dbContextOptions == null)
+        {
+            _contextOptions = new DbContextOptionsBuilder<BuildsContext>()
+            .UseSqlite("Data Source=Buildster.sqlite")
+            .Options;
+        }
+        else
+        {
+            _contextOptions = dbContextOptions;
+        }
+    }
 
     public int Add(AddBuildOptions opts)
     {

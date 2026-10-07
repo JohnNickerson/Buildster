@@ -8,6 +8,22 @@ namespace AssimilationSoftware.Buildster.CLI.Controllers;
 
 public class PackagesController
 {
+    private DbContextOptions _contextOptions;
+
+    public PackagesController(DbContextOptions<BuildsContext>? dbContextOptions = null)
+    {
+        if (dbContextOptions == null)
+        {
+            _contextOptions = new DbContextOptionsBuilder<BuildsContext>()
+            .UseSqlite("Data Source=Buildster.sqlite")
+            .Options;
+        }
+        else
+        {
+            _contextOptions = dbContextOptions;
+        }
+    }
+
     public int List(ListPackagesOptions? opts = null)
     {
         using (var context = new BuildsContext())

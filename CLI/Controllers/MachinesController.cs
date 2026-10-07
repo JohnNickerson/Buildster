@@ -1,12 +1,28 @@
 using AssimilationSoftware.Buildster.CLI.Options;
 using AssimilationSoftware.Buildster.Core;
 using AssimilationSoftware.Buildster.Core.Model;
+using Microsoft.EntityFrameworkCore;
 using Spectre.Console;
 
 namespace AssimilationSoftware.Buildster.CLI.Controllers;
 
 public class MachinesController
 {
+    private DbContextOptions _contextOptions;
+
+    public MachinesController(DbContextOptions<BuildsContext>? dbContextOptions = null)
+    {
+        if (dbContextOptions == null)
+        {
+            _contextOptions = new DbContextOptionsBuilder<BuildsContext>()
+            .UseSqlite("Data Source=Buildster.sqlite")
+            .Options;
+        }
+        else
+        {
+            _contextOptions = dbContextOptions;
+        }
+    }
 
     public int Add(AddMachineOptions opts)
     {
