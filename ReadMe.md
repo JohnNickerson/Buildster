@@ -26,3 +26,7 @@ The application is targeted for use in Windows environments, with cross-platform
 	- Display columns correctly when no Git history is found.
 - 2026-09-09: Build 0.6.3.2
 	- Escape tags in Git history to avoid Spectre exception.
+- 2026-09-17: Build 0.6.4.0
+	- Add data-only flag to promote command.
+- 2026-10-07: Build 0.6.4.1
+	- Refactoring for testability.

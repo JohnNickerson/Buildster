@@ -5,10 +5,10 @@
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
     <Copyright>Copyright © Assimilation Software 2026</Copyright>
-    <Version>0.6.3.2</Version>
-    <FileVersion>0.6.3.2</FileVersion>
-    <InformationalVersion>0.6.3.2</InformationalVersion>
-    <PackageVersion>0.6.3.2</PackageVersion>
+    <Version>0.6.4.1</Version>
+    <FileVersion>0.6.4.1</FileVersion>
+    <InformationalVersion>0.6.4.1</InformationalVersion>
+    <PackageVersion>0.6.4.1</PackageVersion>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="coverlet.collector" Version="10.0.1">
