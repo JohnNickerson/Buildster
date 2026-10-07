@@ -8,7 +8,7 @@ namespace AssimilationSoftware.Buildster.CLI.Controllers;
 
 public class PackagesController
 {
-    private DbContextOptions _contextOptions;
+    private DbContextOptions<BuildsContext> _contextOptions;
 
     public PackagesController(DbContextOptions<BuildsContext>? dbContextOptions = null)
     {
@@ -26,7 +26,7 @@ public class PackagesController
 
     public int List(ListPackagesOptions? opts = null)
     {
-        using (var context = new BuildsContext())
+        using (var context = new BuildsContext(_contextOptions))
         {
             Table table = new Table();
             table.AddColumns("Project", "Package", "Type", "Source folder", "Deploy folder");
@@ -60,7 +60,7 @@ public class PackagesController
 
     public int Add(AddPackageOptions opts)
     {
-        using (var context = new BuildsContext())
+        using (var context = new BuildsContext(_contextOptions))
         {
             var project = context.FindProject(opts.ProjectName);
             if (project is null)
@@ -84,7 +84,7 @@ public class PackagesController
 
     internal void Delete(DeletePackageOptions opts)
     {
-        using (var context = new BuildsContext())
+        using (var context = new BuildsContext(_contextOptions))
         {
             var package = string.IsNullOrEmpty(opts.PackageSource)
                 ? context.Packages.First(p => p.PackageId == opts.PackageId)

@@ -10,7 +10,7 @@ namespace AssimilationSoftware.Buildster.CLI.Controllers;
 
 public class BuildsController
 {
-    private DbContextOptions _contextOptions;
+    private DbContextOptions<BuildsContext> _contextOptions;
 
     public BuildsController(DbContextOptions<BuildsContext>? dbContextOptions = null)
     {
@@ -28,7 +28,7 @@ public class BuildsController
 
     public int Add(AddBuildOptions opts)
     {
-        using (var context = new BuildsContext())
+        using (var context = new BuildsContext(_contextOptions))
         {
             // Get the project by name.
             var project = context.FindProject(opts.ProjectName);
@@ -81,7 +81,7 @@ public class BuildsController
 
     public int Delete(DeleteBuildOptions opts)
     {
-        using (var context = new BuildsContext())
+        using (var context = new BuildsContext(_contextOptions))
         {
             var build = context.Builds
                 .Include(b => b.Project)
@@ -117,7 +117,7 @@ public class BuildsController
 
     public int Update(UpdateBuildOptions opts)
     {
-        using (var buildRepo = new BuildsContext())
+        using (var buildRepo = new BuildsContext(_contextOptions))
         {
             // Check that the build exists.
             var build = buildRepo.FindDeployedBuild(opts.ProjectName, opts.Environment);
@@ -166,7 +166,7 @@ public class BuildsController
 
     public int List(ListBuildsOptions? opts = null)
     {
-        using (var context = new BuildsContext())
+        using (var context = new BuildsContext(_contextOptions))
         {
             var searchProjectName = opts?.ProjectName?.ToLower();
             List<Build> builds = context.Builds

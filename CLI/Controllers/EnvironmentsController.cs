@@ -8,7 +8,7 @@ namespace AssimilationSoftware.Buildster.CLI.Controllers;
 
 public class EnvironmentsController
 {
-    private DbContextOptions _contextOptions;
+    private DbContextOptions<BuildsContext> _contextOptions;
 
     public EnvironmentsController(DbContextOptions<BuildsContext>? dbContextOptions = null)
     {
@@ -26,7 +26,7 @@ public class EnvironmentsController
 
     public int SetPath(SetEnvironmentPathOptions opts)
     {
-        using (var context = new BuildsContext())
+        using (var context = new BuildsContext(_contextOptions))
         {
             var project = context.FindProject(opts.ProjectName);
             var machine = string.IsNullOrEmpty(opts.MachineName) ? context.FindMachine(System.Environment.MachineName) : context.FindMachine(opts.MachineName);
@@ -71,7 +71,7 @@ public class EnvironmentsController
 
     internal int List(ListEnvironmentPathsOptions opts)
     {
-        using (var context = new BuildsContext())
+        using (var context = new BuildsContext(_contextOptions))
         {
             var envPaths = context.EnvironmentPaths.Include(ep => ep.Project).Include(ep => ep.Machine).Include(ep => ep.Environment)
                 .Where(ep => (string.IsNullOrWhiteSpace(opts.ProjectName) || ep.Project.Name.ToLower() == opts.ProjectName.ToLower())

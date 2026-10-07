@@ -8,7 +8,7 @@ namespace AssimilationSoftware.Buildster.CLI.Controllers;
 
 public class MachinesController
 {
-    private DbContextOptions _contextOptions;
+    private DbContextOptions<BuildsContext> _contextOptions;
 
     public MachinesController(DbContextOptions<BuildsContext>? dbContextOptions = null)
     {
@@ -26,7 +26,7 @@ public class MachinesController
 
     public int Add(AddMachineOptions opts)
     {
-        using (var context = new BuildsContext())
+        using (var context = new BuildsContext(_contextOptions))
         {
             var machine = new Machine()
             {
@@ -42,7 +42,7 @@ public class MachinesController
 
     public int Delete(DeleteMachineOptions opts)
     {
-        using (var context = new BuildsContext())
+        using (var context = new BuildsContext(_contextOptions))
         {
             var machine = context.Machines.FirstOrDefault(m => m.Name.ToLower() == opts.Name.ToLower());
             if (machine is null)
@@ -62,7 +62,7 @@ public class MachinesController
     public int Update(UpdateMachineOptions opts)
     {
         // Find the machine.
-        using (var context = new BuildsContext())
+        using (var context = new BuildsContext(_contextOptions))
         {
             var machine = context.FindMachine(opts.OriginalName);
             if (machine is null)
@@ -86,7 +86,7 @@ public class MachinesController
 
     public int List(ListMachinesOptions? opts = null)
     {
-        using (var context = new BuildsContext())
+        using (var context = new BuildsContext(_contextOptions))
         {
             var table = new Table();
             table.AddColumns("Machine", "Description");

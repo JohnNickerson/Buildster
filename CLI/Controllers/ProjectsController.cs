@@ -8,7 +8,7 @@ namespace AssimilationSoftware.Buildster.CLI.Controllers;
 
 public class ProjectsController
 {
-    private DbContextOptions _contextOptions;
+    private DbContextOptions<BuildsContext> _contextOptions;
 
     public ProjectsController(DbContextOptions<BuildsContext>? dbContextOptions = null)
     {
@@ -26,7 +26,7 @@ public class ProjectsController
 
     public int Add(AddProjectOptions opts)
     {
-        using (var context = new BuildsContext())
+        using (var context = new BuildsContext(_contextOptions))
         {
             var project = new Project()
             {
@@ -59,7 +59,7 @@ public class ProjectsController
 
     public int Delete(DeleteProjectOptions opts)
     {
-        using (var context = new BuildsContext())
+        using (var context = new BuildsContext(_contextOptions))
         {
             var project = context.FindProject(opts.Name);
             if (project is null)
@@ -80,7 +80,7 @@ public class ProjectsController
 
     public int Update(UpdateProjectOptions opts)
     {
-        using (var context = new BuildsContext())
+        using (var context = new BuildsContext(_contextOptions))
         {
             var project = context.FindProject(opts.SearchName);
             if (project is null)
@@ -115,7 +115,7 @@ public class ProjectsController
 
     public int List(ListProjectsOptions? opts = null)
     {
-        using (var context = new BuildsContext())
+        using (var context = new BuildsContext(_contextOptions))
         {
             Table table = new Table();
             if (opts?.Verbose ?? false)
@@ -166,7 +166,7 @@ public class ProjectsController
 
     internal int SetCopyright(SetCopyrightOptions opts)
     {
-        using (var context = new BuildsContext())
+        using (var context = new BuildsContext(_contextOptions))
         {
             var project = context.FindProject(opts.ProjectName);
             if (project is null)
