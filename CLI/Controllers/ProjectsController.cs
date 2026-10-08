@@ -1,4 +1,3 @@
-using AssimilationSoftware.Buildster.CLI.Options;
 using AssimilationSoftware.Buildster.Core;
 using AssimilationSoftware.Buildster.Core.Interfaces;
 using AssimilationSoftware.Buildster.Core.Model;
@@ -27,17 +26,17 @@ public class ProjectsController
         }
     }
 
-    public int Add(AddProjectOptions opts)
+    public int Add(string name, string? description, string? sourceFolder)
     {
         using (var context = new BuildsContext(_contextOptions))
         {
             var project = new Project()
             {
-                Name = opts.Name,
-                Description = opts.Description
+                Name = name,
+                Description = description
             };
             context.Projects.Add(project);
-            if (opts.SourceFolder is not null)
+            if (sourceFolder is not null)
             {
                 // Add the current computer, if required.
                 var currentMachine = context.FindMachine(System.Environment.MachineName);
@@ -48,7 +47,7 @@ public class ProjectsController
                 }
                 var projectPath = new ProjectPath()
                 {
-                    Path = opts.SourceFolder,
+                    Path = sourceFolder,
                     Machine = currentMachine,
                     Project = project
                 };
@@ -60,14 +59,14 @@ public class ProjectsController
         return 0;
     }
 
-    public int Delete(DeleteProjectOptions opts)
+    public int Delete(string name)
     {
         using (var context = new BuildsContext(_contextOptions))
         {
-            var project = context.FindProject(opts.Name);
+            var project = context.FindProject(name);
             if (project is null)
             {
-                _statusWriter.Write($"Cannot find project {opts.Name}");
+                _statusWriter.Write($"Cannot find project {name}");
                 return 0;
             }
             context.Projects.Remove(project);
@@ -81,34 +80,34 @@ public class ProjectsController
         return 0;
     }
 
-    public int Update(UpdateProjectOptions opts)
+    public int Update(string searchName, string? updatedName, string? updatedDescription, string? updatedSourcePath, string sourcePathMachine)
     {
         using (var context = new BuildsContext(_contextOptions))
         {
-            var project = context.FindProject(opts.SearchName);
+            var project = context.FindProject(searchName);
             if (project is null)
             {
-                _statusWriter.Write($"Project not found: {opts.SearchName}");
+                _statusWriter.Write($"Project not found: {searchName}");
                 return 0;
             }
-            if (!string.IsNullOrEmpty(opts.UpdatedName))
+            if (!string.IsNullOrEmpty(updatedName))
             {
-                project.Name = opts.UpdatedName;
+                project.Name = updatedName;
             }
-            if (!string.IsNullOrEmpty(opts.UpdatedDescription))
+            if (!string.IsNullOrEmpty(updatedDescription))
             {
-                project.Description = opts.UpdatedDescription;
+                project.Description = updatedDescription;
             }
-            if (!string.IsNullOrEmpty(opts.UpdatedSourcePath))
+            if (!string.IsNullOrEmpty(updatedSourcePath))
             {
-                var machine = context.FindMachine(opts.SourcePathMachine);
+                var machine = context.FindMachine(sourcePathMachine);
                 if (machine is null)
                 {
-                    _statusWriter.Write($"Could not find target machine: {opts.SourcePathMachine}");
+                    _statusWriter.Write($"Could not find target machine: {sourcePathMachine}");
                     return 0;
                 }
                 // Update or add source path.
-                context.UpdateProjectPath(project, machine, opts.UpdatedSourcePath);
+                context.UpdateProjectPath(project, machine, updatedSourcePath);
             }
             context.SaveChanges();
             List();
@@ -116,12 +115,12 @@ public class ProjectsController
         return 0;
     }
 
-    public int List(ListProjectsOptions? opts = null)
+    public int List(bool verbose = false)
     {
         using (var context = new BuildsContext(_contextOptions))
         {
             Table table = new Table();
-            if (opts?.Verbose ?? false)
+            if (verbose)
             {
                 table.AddColumns("Project", "Description", "Machine", "Path");
             }
@@ -140,7 +139,7 @@ public class ProjectsController
                 {
                     table.AddEmptyRow();
                 }
-                if (opts?.Verbose ?? false)
+                if (verbose)
                 {
                     bool row1 = true;
                     foreach (var path in context.ProjectPaths.Include(pp => pp.Machine).Where(pp => pp.ProjectId == proj.ProjectId))
@@ -167,23 +166,23 @@ public class ProjectsController
         return 0;
     }
 
-    internal int SetCopyright(SetCopyrightOptions opts)
+    internal int SetCopyright(string projectName, string companyName, string yearString)
     {
         using (var context = new BuildsContext(_contextOptions))
         {
-            var project = context.FindProject(opts.ProjectName);
+            var project = context.FindProject(projectName);
             if (project is null)
             {
-                _statusWriter.Write($"Project not found: {opts.ProjectName}");
+                _statusWriter.Write($"Project not found: {projectName}");
                 return 0;
             }
             var path = context.FindProjectPath(project, System.Environment.MachineName);
             if (path is null)
             {
-                _statusWriter.Write($"No source path found for project {opts.ProjectName} on this machine.");
+                _statusWriter.Write($"No source path found for project {projectName} on this machine.");
                 return 0;
             }
-            Core.Utils.VersionInfo.UpdateCopyright(path.Path, opts.CompanyName, DateTime.Now.Year, _statusWriter);
+            Core.Utils.VersionInfo.UpdateCopyright(path.Path, companyName, DateTime.Now.Year, _statusWriter);
             context.SaveChanges();
             List();
         }

@@ -1,4 +1,3 @@
-using AssimilationSoftware.Buildster.CLI.Options;
 using AssimilationSoftware.Buildster.Core;
 using AssimilationSoftware.Buildster.Core.Interfaces;
 using AssimilationSoftware.Buildster.Core.Model;
@@ -27,26 +26,26 @@ public class EnvironmentsController
         }
     }
 
-    public int SetPath(SetEnvironmentPathOptions opts)
+    public int SetPath(string projectName, string? machineName, string environmentName, string folder)
     {
         using (var context = new BuildsContext(_contextOptions))
         {
-            var project = context.FindProject(opts.ProjectName);
-            var machine = string.IsNullOrEmpty(opts.MachineName) ? context.FindMachine(System.Environment.MachineName) : context.FindMachine(opts.MachineName);
-            var env = context.FindEnvironment(opts.EnvironmentName);
+            var project = context.FindProject(projectName);
+            var machine = string.IsNullOrEmpty(machineName) ? context.FindMachine(System.Environment.MachineName) : context.FindMachine(machineName);
+            var env = context.FindEnvironment(environmentName);
             if (project is null)
             {
-                _statusWriter.Write($"Could not find project {opts.ProjectName}");
+                _statusWriter.Write($"Could not find project {projectName}");
                 return 0;
             }
             if (machine is null)
             {
-                _statusWriter.Write($"Could not find machine {opts.MachineName}");
+                _statusWriter.Write($"Could not find machine {machineName}");
                 return 0;
             }
             if (env is null)
             {
-                _statusWriter.Write($"Could not find environment {opts.EnvironmentName}");
+                _statusWriter.Write($"Could not find environment {environmentName}");
                 return 0;
             }
             var envPath = context.FindEnvironmentPath(project.Name, machine.Name, env.Name);
@@ -54,7 +53,7 @@ public class EnvironmentsController
             {
                 envPath = new EnvironmentPath()
                 {
-                    Path = opts.Folder,
+                    Path = folder,
                     EnvironmentId = env.EnvironmentId,
                     MachineId = machine.MachineId,
                     ProjectId = project.ProjectId
@@ -63,22 +62,22 @@ public class EnvironmentsController
             }
             else
             {
-                envPath.Path = opts.Folder;
+                envPath.Path = folder;
                 context.Update(envPath);
             }
             context.SaveChanges();
-            List(new() { MachineName = opts.MachineName, ProjectName = opts.ProjectName });
+            List(projectName, machineName);
             return 0;
         }
     }
 
-    internal int List(ListEnvironmentPathsOptions opts)
+    internal int List(string? projectName = null, string? machineName = null)
     {
         using (var context = new BuildsContext(_contextOptions))
         {
             var envPaths = context.EnvironmentPaths.Include(ep => ep.Project).Include(ep => ep.Machine).Include(ep => ep.Environment)
-                .Where(ep => (string.IsNullOrWhiteSpace(opts.ProjectName) || ep.Project.Name.ToLower() == opts.ProjectName.ToLower())
-                && (string.IsNullOrWhiteSpace(opts.MachineName) || ep.Machine.Name.ToLower() == opts.MachineName.ToLower()));
+                .Where(ep => (string.IsNullOrWhiteSpace(projectName) || ep.Project.Name.ToLower() == projectName.ToLower())
+                && (string.IsNullOrWhiteSpace(machineName) || ep.Machine.Name.ToLower() == machineName.ToLower()));
 
             // For each project and machine, add a row to the table showing the given environment path.
             // If there is no path for the given environment, project, and machine, show an empty placeholder like "-".

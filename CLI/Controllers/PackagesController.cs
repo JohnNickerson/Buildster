@@ -1,4 +1,3 @@
-using AssimilationSoftware.Buildster.CLI.Options;
 using AssimilationSoftware.Buildster.Core;
 using AssimilationSoftware.Buildster.Core.Interfaces;
 using AssimilationSoftware.Buildster.Core.Model;
@@ -27,7 +26,7 @@ public class PackagesController
         }
     }
 
-    public int List(ListPackagesOptions? opts = null)
+    public int List(string? projectName = null)
     {
         using (var context = new BuildsContext(_contextOptions))
         {
@@ -35,9 +34,9 @@ public class PackagesController
             table.AddColumns("Project", "Package", "Type", "Source folder", "Deploy folder");
             bool firstRow = true;
             var packageList = context.Packages.Include(p => p.Project).OrderBy(p => p.Project.Name).ThenBy(p => p.SourceFolder);
-            if (opts is not null && !string.IsNullOrEmpty(opts.ProjectName))
+            if (!string.IsNullOrEmpty(projectName))
             {
-                packageList = (IOrderedQueryable<Package>)packageList.Where(p => p.Project.Name.ToLower() == opts.ProjectName.ToLower());
+                packageList = (IOrderedQueryable<Package>)packageList.Where(p => p.Project.Name.ToLower() == projectName.ToLower());
             }
             foreach (var package in packageList)
             {
@@ -61,44 +60,44 @@ public class PackagesController
         return 0;
     }
 
-    public int Add(AddPackageOptions opts)
+    public int Add(string projectName, string sourceFolder, string deployFolder, bool isNuGet)
     {
         using (var context = new BuildsContext(_contextOptions))
         {
-            var project = context.FindProject(opts.ProjectName);
+            var project = context.FindProject(projectName);
             if (project is null)
             {
-                _statusWriter.Write($"Could not find project {opts.ProjectName}");
+                _statusWriter.Write($"Could not find project {projectName}");
                 return 0;
             }
             var package = new Package()
             {
-                DeployFolder = opts.DeployFolder,
-                SourceFolder = opts.SourceFolder,
-                IsNuGet = opts.IsNuGet,
+                DeployFolder = deployFolder,
+                SourceFolder = sourceFolder,
+                IsNuGet = isNuGet,
                 ProjectId = project.ProjectId
             };
             context.Packages.Add(package);
             context.SaveChanges();
-            List(new ListPackagesOptions() { ProjectName = opts.ProjectName });
+            List(projectName);
         }
         return 0;
     }
 
-    internal void Delete(DeletePackageOptions opts)
+    internal void Delete(string projectName, int packageId, string? packageSource)
     {
         using (var context = new BuildsContext(_contextOptions))
         {
-            var package = string.IsNullOrEmpty(opts.PackageSource)
-                ? context.Packages.First(p => p.PackageId == opts.PackageId)
-                : context.FindPackageBySource(opts.ProjectName, opts.PackageSource);
+            var package = string.IsNullOrEmpty(packageSource)
+                ? context.Packages.First(p => p.PackageId == packageId)
+                : context.FindPackageBySource(projectName, packageSource);
             if (package is null)
             {
                 _statusWriter.Write("Package not found");
                 return;
             }
             context.Packages.Remove(package);
-            _statusWriter.Write($"Removed package {package.SourceFolder} from {opts.ProjectName}");
+            _statusWriter.Write($"Removed package {package.SourceFolder} from {projectName}");
             context.SaveChanges();
             List();
         }

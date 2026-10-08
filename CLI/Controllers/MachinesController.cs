@@ -1,4 +1,3 @@
-using AssimilationSoftware.Buildster.CLI.Options;
 using AssimilationSoftware.Buildster.Core;
 using AssimilationSoftware.Buildster.Core.Interfaces;
 using AssimilationSoftware.Buildster.Core.Model;
@@ -27,14 +26,14 @@ public class MachinesController
         }
     }
 
-    public int Add(AddMachineOptions opts)
+    public int Add(string name, string? description)
     {
         using (var context = new BuildsContext(_contextOptions))
         {
             var machine = new Machine()
             {
-                Name = opts.Name,
-                Description = opts.Description
+                Name = name,
+                Description = description
             };
             context.Machines.Add(machine);
             context.SaveChanges();
@@ -43,14 +42,14 @@ public class MachinesController
         return 0;
     }
 
-    public int Delete(DeleteMachineOptions opts)
+    public int Delete(string name)
     {
         using (var context = new BuildsContext(_contextOptions))
         {
-            var machine = context.Machines.FirstOrDefault(m => m.Name.ToLower() == opts.Name.ToLower());
+            var machine = context.Machines.FirstOrDefault(m => m.Name.ToLower() == name.ToLower());
             if (machine is null)
             {
-                _statusWriter.Write($"Machine {opts.Name} not found");
+                _statusWriter.Write($"Machine {name} not found");
                 return 0;
             }
             context.Machines.Remove(machine);
@@ -62,24 +61,24 @@ public class MachinesController
         return 0;
     }
 
-    public int Update(UpdateMachineOptions opts)
+    public int Update(string originalName, string? updatedName, string? updatedDescription)
     {
         // Find the machine.
         using (var context = new BuildsContext(_contextOptions))
         {
-            var machine = context.FindMachine(opts.OriginalName);
+            var machine = context.FindMachine(originalName);
             if (machine is null)
             {
-                _statusWriter.Write($"Machine not found: {opts.OriginalName}");
+                _statusWriter.Write($"Machine not found: {originalName}");
                 return 0;
             }
-            if (!string.IsNullOrWhiteSpace(opts.UpdatedName))
+            if (!string.IsNullOrWhiteSpace(updatedName))
             {
-                machine.Name = opts.UpdatedName;
+                machine.Name = updatedName;
             }
-            if (!string.IsNullOrWhiteSpace(opts.UpdatedDescription))
+            if (!string.IsNullOrWhiteSpace(updatedDescription))
             {
-                machine.Description = opts.UpdatedDescription;
+                machine.Description = updatedDescription;
             }
             context.SaveChanges();
             List();
@@ -87,7 +86,7 @@ public class MachinesController
         return 0;
     }
 
-    public int List(ListMachinesOptions? opts = null)
+    public int List()
     {
         using (var context = new BuildsContext(_contextOptions))
         {

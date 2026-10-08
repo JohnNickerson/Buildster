@@ -1,4 +1,3 @@
-using AssimilationSoftware.Buildster.CLI.Options;
 using AssimilationSoftware.Buildster.Core;
 using AssimilationSoftware.Buildster.Core.Interfaces;
 using AssimilationSoftware.Buildster.Core.Model;
@@ -29,24 +28,24 @@ public class BuildsController
         }
     }
 
-    public int Add(AddBuildOptions opts)
+    public int Add(string projectName, string version, DateTime? buildDate, string? description, bool dataOnly)
     {
         using (var context = new BuildsContext(_contextOptions))
         {
             // Get the project by name.
-            var project = context.FindProject(opts.ProjectName);
+            var project = context.FindProject(projectName);
             if (project is null)
             {
-                _statusWriter.Write($"Cannot find a project with the name {opts.ProjectName}");
+                _statusWriter.Write($"Cannot find a project with the name {projectName}");
                 return 0;
             }
             var integration = context.FindEnvironment("Integration")!;
             var build = new Build()
             {
-                Timestamp = opts.BuildDate ?? DateTime.Now,
-                Version = opts.Version,
+                Timestamp = buildDate ?? DateTime.Now,
+                Version = version,
                 Environment = integration,
-                Notes = opts.Description,
+                Notes = description,
                 Project = project
             };
             var path = context.FindProjectPath(project, System.Environment.MachineName);
@@ -55,20 +54,20 @@ public class BuildsController
                 _statusWriter.Write($"Cannot find a path for project {project.Name} on this machine.");
                 return 0;
             }
-            var version = new VersionNumber(opts.Version);
+            var buildVersion = new VersionNumber(version);
             // Reject any build currently in the environment.
             context.Builds.RemoveRange(context.Builds.Where(b => b.ProjectId == project.ProjectId && b.EnvironmentId == integration.EnvironmentId));
 
-            if (!opts.DataOnly)
+            if (!dataOnly)
             {
-                VersionInfo.Update(path.Path, version, _statusWriter);
+                VersionInfo.Update(path.Path, buildVersion, _statusWriter);
                 // Add tag to source control, push tag to origin if present
-                GitUtils.Tag(path.Path, version, _statusWriter);
+                GitUtils.Tag(path.Path, buildVersion, _statusWriter);
                 // Update copyright if needed
                 var company = VersionInfo.GetCompany(path.Path, _statusWriter).FirstOrDefault() ?? string.Empty;
                 VersionInfo.UpdateCopyright(path.Path, company, DateTime.Now.Year, _statusWriter);
                 // Add release notes
-                ReleaseNotes.AppendNotes(path.Path, DateTime.Now, version, opts.Description?.Split(['.'], StringSplitOptions.RemoveEmptyEntries) ?? []);
+                ReleaseNotes.AppendNotes(path.Path, DateTime.Now, buildVersion, description?.Split(['.'], StringSplitOptions.RemoveEmptyEntries) ?? []);
                 // TODO: build the actual packages
                 // (first need to store package info in the database)
             }
@@ -80,7 +79,7 @@ public class BuildsController
         return 0;
     }
 
-    public int Delete(DeleteBuildOptions opts)
+    public int Delete(string projectName, string environmentName, bool dataOnly)
     {
         using (var context = new BuildsContext(_contextOptions))
         {
@@ -88,19 +87,19 @@ public class BuildsController
                 .Include(b => b.Project)
                 .Include(b => b.Environment)
                 .FirstOrDefault(b =>
-                    b.Project.Name.ToLower() == opts.ProjectName.ToLower() &&
+                    b.Project.Name.ToLower() == projectName.ToLower() &&
                     b.Environment != null &&
-                    b.Environment.Name.ToLower() == opts.EnvironmentName.ToLower()
+                    b.Environment.Name.ToLower() == environmentName.ToLower()
                 );
             if (build is null)
             {
-                _statusWriter.Write($"Build not found in {opts.EnvironmentName} for {opts.ProjectName}");
+                _statusWriter.Write($"Build not found in {environmentName} for {projectName}");
                 return 0;
             }
             // TODO: Perhaps mark a build as rejected once we have build history in place. Will require a new property.
             context.Builds.Remove(build);
             context.SaveChanges();
-            if (!opts.DataOnly)
+            if (!dataOnly)
             {
                 // TODO: Attempt to delete the build files from disk.
             }
@@ -116,34 +115,34 @@ public class BuildsController
         return 0;
     }
 
-    public int Update(UpdateBuildOptions opts)
+    public int Update(string projectName, string sourceEnvironment, bool dataOnly)
     {
         using (var buildRepo = new BuildsContext(_contextOptions))
         {
             // Check that the build exists.
-            var build = buildRepo.FindDeployedBuild(opts.ProjectName, opts.Environment);
+            var build = buildRepo.FindDeployedBuild(projectName, sourceEnvironment);
             if (build == null)
             {
-                _statusWriter.Write($"No build found in '{opts.Environment}' for project '{opts.ProjectName}'.");
+                _statusWriter.Write($"No build found in '{sourceEnvironment}' for project '{projectName}'.");
                 return 1;
             }
             // 1. Get the next environment.
-            string? nextEnvironment = buildRepo.GetNextEnvironment(opts.Environment);
+            string? nextEnvironment = buildRepo.GetNextEnvironment(sourceEnvironment);
             if (string.IsNullOrEmpty(nextEnvironment))
             {
-                _statusWriter.Write($"No next environment found after '{opts.Environment}'.");
+                _statusWriter.Write($"No next environment found after '{sourceEnvironment}'.");
                 return 1;
             }
             // 2. Reject any existing build in the next environment.
-            var existingBuild = buildRepo.FindDeployedBuild(opts.ProjectName, nextEnvironment);
+            var existingBuild = buildRepo.FindDeployedBuild(projectName, nextEnvironment);
             if (existingBuild != null)
             {
                 buildRepo.Builds.Remove(existingBuild);
-                if (!opts.DataOnly)
+                if (!dataOnly)
                 {
                     // TODO: Delete existing files.
                 }
-                _statusWriter.Write($"Existing build '{existingBuild.Version}' for project '{opts.ProjectName}' in environment '{nextEnvironment}' rejected.");
+                _statusWriter.Write($"Existing build '{existingBuild.Version}' for project '{projectName}' in environment '{nextEnvironment}' rejected.");
             }
             // 3. Promote the build to the next environment.
             var environment = buildRepo.FindEnvironment(nextEnvironment);
@@ -155,29 +154,26 @@ public class BuildsController
             build.EnvironmentId = environment?.EnvironmentId;
             buildRepo.Update(build);
             buildRepo.SaveChanges();
-            if (!opts.DataOnly)
+            if (!dataOnly)
             {
                 // TODO: Move build files to next environment.
             }
-            _statusWriter.Write($"Build '{build.Version}' for project '{opts.ProjectName}' promoted to '{nextEnvironment}'.");
-            List(new ListBuildsOptions { ProjectName = opts.ProjectName });
+            _statusWriter.Write($"Build '{build.Version}' for project '{projectName}' promoted to '{nextEnvironment}'.");
+            List(projectName);
         }
         return 0;
     }
 
-    public int List(ListBuildsOptions? opts = null)
+    public int List(string? projectName = null, bool bare = false, bool pending = false)
     {
         using (var context = new BuildsContext(_contextOptions))
         {
-            var searchProjectName = opts?.ProjectName?.ToLower();
+            var searchProjectName = projectName?.ToLower();
             List<Build> builds = context.Builds
                 .Include(b => b.Project)
                 .Include(b => b.Environment)
                 .Where(b => searchProjectName == null || b.Project.Name.ToLower() == searchProjectName)
                 .ToList();
-
-            var bare = opts?.Bare ?? false;
-            var pending = opts?.Pending ?? false;
 
             var table = new Table();
             if (pending)
