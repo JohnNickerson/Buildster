@@ -30,3 +30,5 @@ The application is targeted for use in Windows environments, with cross-platform
 	- Add data-only flag to promote command.
 - 2026-10-07: Build 0.6.4.1
 	- Refactoring for testability.
+- 2026-10-07: Build 0.6.4.2
+	- Fix build search display.
