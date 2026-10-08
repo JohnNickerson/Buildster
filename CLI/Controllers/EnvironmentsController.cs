@@ -1,5 +1,6 @@
 using AssimilationSoftware.Buildster.CLI.Options;
 using AssimilationSoftware.Buildster.Core;
+using AssimilationSoftware.Buildster.Core.Interfaces;
 using AssimilationSoftware.Buildster.Core.Model;
 using Microsoft.EntityFrameworkCore;
 using Spectre.Console;
@@ -9,9 +10,11 @@ namespace AssimilationSoftware.Buildster.CLI.Controllers;
 public class EnvironmentsController
 {
     private DbContextOptions<BuildsContext> _contextOptions;
+    private readonly IStatusWriter _statusWriter;
 
-    public EnvironmentsController(DbContextOptions<BuildsContext>? dbContextOptions = null)
+    public EnvironmentsController(IStatusWriter statusWriter, DbContextOptions<BuildsContext>? dbContextOptions = null)
     {
+        _statusWriter = statusWriter;
         if (dbContextOptions == null)
         {
             _contextOptions = new DbContextOptionsBuilder<BuildsContext>()
@@ -33,17 +36,17 @@ public class EnvironmentsController
             var env = context.FindEnvironment(opts.EnvironmentName);
             if (project is null)
             {
-                Console.WriteLine($"Could not find project {opts.ProjectName}");
+                _statusWriter.Write($"Could not find project {opts.ProjectName}");
                 return 0;
             }
             if (machine is null)
             {
-                Console.WriteLine($"Could not find machine {opts.MachineName}");
+                _statusWriter.Write($"Could not find machine {opts.MachineName}");
                 return 0;
             }
             if (env is null)
             {
-                Console.WriteLine($"Could not find environment {opts.EnvironmentName}");
+                _statusWriter.Write($"Could not find environment {opts.EnvironmentName}");
                 return 0;
             }
             var envPath = context.FindEnvironmentPath(project.Name, machine.Name, env.Name);
@@ -116,7 +119,7 @@ public class EnvironmentsController
             }
             else
             {
-                Console.WriteLine("No data to display");
+                _statusWriter.Write("No data to display");
             }
             return 0;
         }

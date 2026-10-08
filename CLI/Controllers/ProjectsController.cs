@@ -1,5 +1,6 @@
 using AssimilationSoftware.Buildster.CLI.Options;
 using AssimilationSoftware.Buildster.Core;
+using AssimilationSoftware.Buildster.Core.Interfaces;
 using AssimilationSoftware.Buildster.Core.Model;
 using Microsoft.EntityFrameworkCore;
 using Spectre.Console;
@@ -9,9 +10,11 @@ namespace AssimilationSoftware.Buildster.CLI.Controllers;
 public class ProjectsController
 {
     private DbContextOptions<BuildsContext> _contextOptions;
+    private readonly IStatusWriter _statusWriter;
 
-    public ProjectsController(DbContextOptions<BuildsContext>? dbContextOptions = null)
+    public ProjectsController(IStatusWriter statusWriter, DbContextOptions<BuildsContext>? dbContextOptions = null)
     {
+        _statusWriter = statusWriter;
         if (dbContextOptions == null)
         {
             _contextOptions = new DbContextOptionsBuilder<BuildsContext>()
@@ -64,7 +67,7 @@ public class ProjectsController
             var project = context.FindProject(opts.Name);
             if (project is null)
             {
-                Console.WriteLine($"Cannot find project {opts.Name}");
+                _statusWriter.Write($"Cannot find project {opts.Name}");
                 return 0;
             }
             context.Projects.Remove(project);
@@ -85,7 +88,7 @@ public class ProjectsController
             var project = context.FindProject(opts.SearchName);
             if (project is null)
             {
-                Console.WriteLine($"Project not found: {opts.SearchName}");
+                _statusWriter.Write($"Project not found: {opts.SearchName}");
                 return 0;
             }
             if (!string.IsNullOrEmpty(opts.UpdatedName))
@@ -101,7 +104,7 @@ public class ProjectsController
                 var machine = context.FindMachine(opts.SourcePathMachine);
                 if (machine is null)
                 {
-                    Console.WriteLine($"Could not find target machine: {opts.SourcePathMachine}");
+                    _statusWriter.Write($"Could not find target machine: {opts.SourcePathMachine}");
                     return 0;
                 }
                 // Update or add source path.
@@ -171,16 +174,16 @@ public class ProjectsController
             var project = context.FindProject(opts.ProjectName);
             if (project is null)
             {
-                Console.WriteLine($"Project not found: {opts.ProjectName}");
+                _statusWriter.Write($"Project not found: {opts.ProjectName}");
                 return 0;
             }
             var path = context.FindProjectPath(project, System.Environment.MachineName);
             if (path is null)
             {
-                Console.WriteLine($"No source path found for project {opts.ProjectName} on this machine.");
+                _statusWriter.Write($"No source path found for project {opts.ProjectName} on this machine.");
                 return 0;
             }
-            Core.Utils.VersionInfo.UpdateCopyright(path.Path, opts.CompanyName, DateTime.Now.Year, new ConsoleStatusWriter());
+            Core.Utils.VersionInfo.UpdateCopyright(path.Path, opts.CompanyName, DateTime.Now.Year, _statusWriter);
             context.SaveChanges();
             List();
         }

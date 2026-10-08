@@ -1,5 +1,6 @@
 using AssimilationSoftware.Buildster.CLI.Options;
 using AssimilationSoftware.Buildster.Core;
+using AssimilationSoftware.Buildster.Core.Interfaces;
 using AssimilationSoftware.Buildster.Core.Model;
 using AssimilationSoftware.Buildster.Core.Utils;
 using Microsoft.EntityFrameworkCore;
@@ -11,9 +12,11 @@ namespace AssimilationSoftware.Buildster.CLI.Controllers;
 public class BuildsController
 {
     private DbContextOptions<BuildsContext> _contextOptions;
+    private readonly IStatusWriter _statusWriter;
 
-    public BuildsController(DbContextOptions<BuildsContext>? dbContextOptions = null)
+    public BuildsController(IStatusWriter statusWriter, DbContextOptions<BuildsContext>? dbContextOptions = null)
     {
+        _statusWriter = statusWriter;
         if (dbContextOptions == null)
         {
             _contextOptions = new DbContextOptionsBuilder<BuildsContext>()
@@ -34,7 +37,7 @@ public class BuildsController
             var project = context.FindProject(opts.ProjectName);
             if (project is null)
             {
-                Console.WriteLine($"Cannot find a project with the name {opts.ProjectName}");
+                _statusWriter.Write($"Cannot find a project with the name {opts.ProjectName}");
                 return 0;
             }
             var integration = context.FindEnvironment("Integration")!;
@@ -49,23 +52,21 @@ public class BuildsController
             var path = context.FindProjectPath(project, System.Environment.MachineName);
             if (path is null)
             {
-                Console.WriteLine($"Cannot find a path for project {project.Name} on this machine.");
+                _statusWriter.Write($"Cannot find a path for project {project.Name} on this machine.");
                 return 0;
             }
             var version = new VersionNumber(opts.Version);
-            var statusWriter = new ConsoleStatusWriter();
-
             // Reject any build currently in the environment.
             context.Builds.RemoveRange(context.Builds.Where(b => b.ProjectId == project.ProjectId && b.EnvironmentId == integration.EnvironmentId));
 
             if (!opts.DataOnly)
             {
-                VersionInfo.Update(path.Path, version, statusWriter);
+                VersionInfo.Update(path.Path, version, _statusWriter);
                 // Add tag to source control, push tag to origin if present
-                GitUtils.Tag(path.Path, version, statusWriter);
+                GitUtils.Tag(path.Path, version, _statusWriter);
                 // Update copyright if needed
-                var company = VersionInfo.GetCompany(path.Path, statusWriter).FirstOrDefault() ?? string.Empty;
-                VersionInfo.UpdateCopyright(path.Path, company, DateTime.Now.Year, statusWriter);
+                var company = VersionInfo.GetCompany(path.Path, _statusWriter).FirstOrDefault() ?? string.Empty;
+                VersionInfo.UpdateCopyright(path.Path, company, DateTime.Now.Year, _statusWriter);
                 // Add release notes
                 ReleaseNotes.AppendNotes(path.Path, DateTime.Now, version, opts.Description?.Split(['.'], StringSplitOptions.RemoveEmptyEntries) ?? []);
                 // TODO: build the actual packages
@@ -93,7 +94,7 @@ public class BuildsController
                 );
             if (build is null)
             {
-                Console.WriteLine($"Build not found in {opts.EnvironmentName} for {opts.ProjectName}");
+                _statusWriter.Write($"Build not found in {opts.EnvironmentName} for {opts.ProjectName}");
                 return 0;
             }
             // TODO: Perhaps mark a build as rejected once we have build history in place. Will require a new property.
@@ -105,11 +106,11 @@ public class BuildsController
             }
             if (build.Environment is null)
             {
-                Console.WriteLine($"Build {build.Version} removed from {build.Project.Name}");
+                _statusWriter.Write($"Build {build.Version} removed from {build.Project.Name}");
             }
             else
             {
-                Console.WriteLine($"Build {build.Version} removed from {build.Environment.Name} for {build.Project.Name}");
+                _statusWriter.Write($"Build {build.Version} removed from {build.Environment.Name} for {build.Project.Name}");
             }
         }
         return 0;
@@ -123,14 +124,14 @@ public class BuildsController
             var build = buildRepo.FindDeployedBuild(opts.ProjectName, opts.Environment);
             if (build == null)
             {
-                Console.WriteLine($"No build found in '{opts.Environment}' for project '{opts.ProjectName}'.");
+                _statusWriter.Write($"No build found in '{opts.Environment}' for project '{opts.ProjectName}'.");
                 return 1;
             }
             // 1. Get the next environment.
             string? nextEnvironment = buildRepo.GetNextEnvironment(opts.Environment);
             if (string.IsNullOrEmpty(nextEnvironment))
             {
-                Console.WriteLine($"No next environment found after '{opts.Environment}'.");
+                _statusWriter.Write($"No next environment found after '{opts.Environment}'.");
                 return 1;
             }
             // 2. Reject any existing build in the next environment.
@@ -142,13 +143,13 @@ public class BuildsController
                 {
                     // TODO: Delete existing files.
                 }
-                Console.WriteLine($"Existing build '{existingBuild.Version}' for project '{opts.ProjectName}' in environment '{nextEnvironment}' rejected.");
+                _statusWriter.Write($"Existing build '{existingBuild.Version}' for project '{opts.ProjectName}' in environment '{nextEnvironment}' rejected.");
             }
             // 3. Promote the build to the next environment.
             var environment = buildRepo.FindEnvironment(nextEnvironment);
             if (environment == null)
             {
-                Console.WriteLine($"Could not find environment '{nextEnvironment}'.");
+                _statusWriter.Write($"Could not find environment '{nextEnvironment}'.");
                 return 1;
             }
             build.EnvironmentId = environment?.EnvironmentId;
@@ -158,7 +159,7 @@ public class BuildsController
             {
                 // TODO: Move build files to next environment.
             }
-            Console.WriteLine($"Build '{build.Version}' for project '{opts.ProjectName}' promoted to '{nextEnvironment}'.");
+            _statusWriter.Write($"Build '{build.Version}' for project '{opts.ProjectName}' promoted to '{nextEnvironment}'.");
             List(new ListBuildsOptions { ProjectName = opts.ProjectName });
         }
         return 0;

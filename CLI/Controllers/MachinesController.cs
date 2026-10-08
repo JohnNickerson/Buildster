@@ -1,5 +1,6 @@
 using AssimilationSoftware.Buildster.CLI.Options;
 using AssimilationSoftware.Buildster.Core;
+using AssimilationSoftware.Buildster.Core.Interfaces;
 using AssimilationSoftware.Buildster.Core.Model;
 using Microsoft.EntityFrameworkCore;
 using Spectre.Console;
@@ -9,9 +10,11 @@ namespace AssimilationSoftware.Buildster.CLI.Controllers;
 public class MachinesController
 {
     private DbContextOptions<BuildsContext> _contextOptions;
+    private readonly IStatusWriter _statusWriter;
 
-    public MachinesController(DbContextOptions<BuildsContext>? dbContextOptions = null)
+    public MachinesController(IStatusWriter statusWriter, DbContextOptions<BuildsContext>? dbContextOptions = null)
     {
+        _statusWriter = statusWriter;
         if (dbContextOptions == null)
         {
             _contextOptions = new DbContextOptionsBuilder<BuildsContext>()
@@ -47,7 +50,7 @@ public class MachinesController
             var machine = context.Machines.FirstOrDefault(m => m.Name.ToLower() == opts.Name.ToLower());
             if (machine is null)
             {
-                Console.WriteLine($"Machine {opts.Name} not found");
+                _statusWriter.Write($"Machine {opts.Name} not found");
                 return 0;
             }
             context.Machines.Remove(machine);
@@ -67,7 +70,7 @@ public class MachinesController
             var machine = context.FindMachine(opts.OriginalName);
             if (machine is null)
             {
-                Console.WriteLine($"Machine not found: {opts.OriginalName}");
+                _statusWriter.Write($"Machine not found: {opts.OriginalName}");
                 return 0;
             }
             if (!string.IsNullOrWhiteSpace(opts.UpdatedName))

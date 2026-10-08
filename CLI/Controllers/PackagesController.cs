@@ -1,5 +1,6 @@
 using AssimilationSoftware.Buildster.CLI.Options;
 using AssimilationSoftware.Buildster.Core;
+using AssimilationSoftware.Buildster.Core.Interfaces;
 using AssimilationSoftware.Buildster.Core.Model;
 using Microsoft.EntityFrameworkCore;
 using Spectre.Console;
@@ -9,9 +10,11 @@ namespace AssimilationSoftware.Buildster.CLI.Controllers;
 public class PackagesController
 {
     private DbContextOptions<BuildsContext> _contextOptions;
+    private readonly IStatusWriter _statusWriter;
 
-    public PackagesController(DbContextOptions<BuildsContext>? dbContextOptions = null)
+    public PackagesController(IStatusWriter statusWriter, DbContextOptions<BuildsContext>? dbContextOptions = null)
     {
+        _statusWriter = statusWriter;
         if (dbContextOptions == null)
         {
             _contextOptions = new DbContextOptionsBuilder<BuildsContext>()
@@ -52,7 +55,7 @@ public class PackagesController
             }
             else
             {
-                Console.WriteLine("No packages found");
+                _statusWriter.Write("No packages found");
             }
         }
         return 0;
@@ -65,7 +68,7 @@ public class PackagesController
             var project = context.FindProject(opts.ProjectName);
             if (project is null)
             {
-                Console.WriteLine($"Could not find project {opts.ProjectName}");
+                _statusWriter.Write($"Could not find project {opts.ProjectName}");
                 return 0;
             }
             var package = new Package()
@@ -91,11 +94,11 @@ public class PackagesController
                 : context.FindPackageBySource(opts.ProjectName, opts.PackageSource);
             if (package is null)
             {
-                Console.WriteLine("Package not found");
+                _statusWriter.Write("Package not found");
                 return;
             }
             context.Packages.Remove(package);
-            Console.WriteLine($"Removed package {package.SourceFolder} from {opts.ProjectName}");
+            _statusWriter.Write($"Removed package {package.SourceFolder} from {opts.ProjectName}");
             context.SaveChanges();
             List();
         }
