@@ -3,8 +3,6 @@ using AssimilationSoftware.Buildster.Core.Interfaces;
 using AssimilationSoftware.Buildster.Core.Model;
 using AssimilationSoftware.Buildster.Core.Utils;
 using Microsoft.EntityFrameworkCore;
-using Spectre.Console;
-using Spectre.Console.Rendering;
 
 namespace AssimilationSoftware.Buildster.CLI.Controllers;
 
@@ -12,10 +10,12 @@ public class BuildsController
 {
     private DbContextOptions<BuildsContext> _contextOptions;
     private readonly IStatusWriter _statusWriter;
+    private readonly ITableWriter _tableWriter;
 
-    public BuildsController(IStatusWriter statusWriter, DbContextOptions<BuildsContext>? dbContextOptions = null)
+    public BuildsController(IStatusWriter statusWriter, ITableWriter tableWriter, DbContextOptions<BuildsContext>? dbContextOptions = null)
     {
         _statusWriter = statusWriter;
+        _tableWriter = tableWriter;
         if (dbContextOptions == null)
         {
             _contextOptions = new DbContextOptionsBuilder<BuildsContext>()
@@ -175,15 +175,10 @@ public class BuildsController
                 .Where(b => searchProjectName == null || b.Project.Name.ToLower() == searchProjectName)
                 .ToList();
 
-            var table = new Table();
-            if (pending)
-            {
-                table.AddColumns("Project", "Pending", "Integration", "Testing", "Production");
-            }
-            else
-            {
-                table.AddColumns("Project", "Integration", "Testing", "Production");
-            }
+            var columns = pending
+                ? new[] { "Project", "Pending", "Integration", "Testing", "Production" }
+                : new[] { "Project", "Integration", "Testing", "Production" };
+            List<TableRow> rows = [];
             var firstRow = true;
             foreach (var project in context.Projects.Where(b => searchProjectName == null || b.Name.ToLower() == searchProjectName).Select(p => p.Name).Distinct().OrderBy(p => p))
             {
@@ -202,58 +197,53 @@ public class BuildsController
                 var productionBuild = builds.FirstOrDefault(b => b.Project.Name == project && b.Environment?.Name == "Production");
                 if (bare)
                 {
-                    var row = new List<string> { project };
+                    var row = new List<TableCell> { new(project) };
                     if (pending)
                     {
-                        row.Add(Markup.Escape(string.Join(System.Environment.NewLine, gitMessages)));
+                        row.Add(new TableCell(string.Join(System.Environment.NewLine, gitMessages)));
                     }
-                    row.Add(integrationBuild?.Version ?? string.Empty);
-                    row.Add(testingBuild?.Version ?? string.Empty);
-                    row.Add(productionBuild?.Version ?? string.Empty);
+                    row.Add(new TableCell(integrationBuild?.Version ?? string.Empty));
+                    row.Add(new TableCell(testingBuild?.Version ?? string.Empty));
+                    row.Add(new TableCell(productionBuild?.Version ?? string.Empty));
                     if (!firstRow)
                     {
-                        table.AddEmptyRow();
+                        rows.Add(TableRow.Separator);
                     }
-                    table.AddRow(row.ToArray());
+                    rows.Add(new TableRow(row));
                 }
                 else
                 {
-                    var row = new List<IRenderable> { new Markup(project) };
+                    var row = new List<TableCell> { new(project) };
                     if (pending)
                     {
                         if (!gitMessages.Any())
                         {
-                            row.Add(new Markup("-"));
+                            row.Add(new TableCell("-"));
                         }
                         else
                         {
-                            var pendingPanel = new Panel(Markup.Escape(string.Join(System.Environment.NewLine, gitMessages)));
-                            row.Add(pendingPanel);
+                            row.Add(new TableCell(string.Join(System.Environment.NewLine, gitMessages), IsFramed: true));
                         }
                     }
-                    row.Add(DisplayPanel(integrationBuild, bare));
-                    row.Add(DisplayPanel(testingBuild, bare));
-                    row.Add(DisplayPanel(productionBuild, bare));
-                    table.AddRow(row.ToArray());
+                    row.Add(DisplayCell(integrationBuild));
+                    row.Add(DisplayCell(testingBuild));
+                    row.Add(DisplayCell(productionBuild));
+                    rows.Add(new TableRow(row));
                 }
                 firstRow = false;
             }
-            AnsiConsole.Write(table);
+            _tableWriter.Write(new TableDescription(columns, rows));
         }
         return 0;
     }
 
-    private static Panel DisplayPanel(Build? build, bool bare)
+    private static TableCell DisplayCell(Build? build)
     {
         if (build == null)
         {
-            return new Panel("-").NoBorder();
+            return new TableCell("-");
         }
-        if (bare)
-        {
-            return new Panel(build.Version.ToString());
-        }
-        return new Panel($"Version: {build.Version}\nDate: {build.Timestamp:yyyy-MM-dd}\nNotes: {build.Notes}");
+        return new TableCell($"Version: {build.Version}\nDate: {build.Timestamp:yyyy-MM-dd}\nNotes: {build.Notes}", IsFramed: true);
     }
 
 }

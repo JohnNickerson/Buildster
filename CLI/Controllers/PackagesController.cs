@@ -2,7 +2,6 @@ using AssimilationSoftware.Buildster.Core;
 using AssimilationSoftware.Buildster.Core.Interfaces;
 using AssimilationSoftware.Buildster.Core.Model;
 using Microsoft.EntityFrameworkCore;
-using Spectre.Console;
 
 namespace AssimilationSoftware.Buildster.CLI.Controllers;
 
@@ -10,10 +9,12 @@ public class PackagesController
 {
     private DbContextOptions<BuildsContext> _contextOptions;
     private readonly IStatusWriter _statusWriter;
+    private readonly ITableWriter _tableWriter;
 
-    public PackagesController(IStatusWriter statusWriter, DbContextOptions<BuildsContext>? dbContextOptions = null)
+    public PackagesController(IStatusWriter statusWriter, ITableWriter tableWriter, DbContextOptions<BuildsContext>? dbContextOptions = null)
     {
         _statusWriter = statusWriter;
+        _tableWriter = tableWriter;
         if (dbContextOptions == null)
         {
             _contextOptions = new DbContextOptionsBuilder<BuildsContext>()
@@ -30,8 +31,7 @@ public class PackagesController
     {
         using (var context = new BuildsContext(_contextOptions))
         {
-            Table table = new Table();
-            table.AddColumns("Project", "Package", "Type", "Source folder", "Deploy folder");
+            List<TableRow> rows = [];
             bool firstRow = true;
             var packageList = context.Packages.Include(p => p.Project).OrderBy(p => p.Project.Name).ThenBy(p => p.SourceFolder);
             if (!string.IsNullOrEmpty(projectName))
@@ -42,15 +42,24 @@ public class PackagesController
             {
                 if (!firstRow)
                 {
-                    table.AddEmptyRow();
+                    rows.Add(TableRow.Separator);
                 }
                 firstRow = false;
 
-                table.AddRow(package.Project.Name, package.PackageId.ToString(), package.IsNuGet ? "NuGet" : "Executable", package.SourceFolder, package.DeployFolder);
+                rows.Add(new TableRow(
+                [
+                    new TableCell(package.Project.Name),
+                    new TableCell(package.PackageId.ToString()),
+                    new TableCell(package.IsNuGet ? "NuGet" : "Executable"),
+                    new TableCell(package.SourceFolder),
+                    new TableCell(package.DeployFolder)
+                ]));
             }
             if (packageList.Any())
             {
-                AnsiConsole.Write(table);
+                _tableWriter.Write(new TableDescription(
+                    ["Project", "Package", "Type", "Source folder", "Deploy folder"],
+                    rows));
             }
             else
             {

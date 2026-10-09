@@ -2,7 +2,6 @@ using AssimilationSoftware.Buildster.Core;
 using AssimilationSoftware.Buildster.Core.Interfaces;
 using AssimilationSoftware.Buildster.Core.Model;
 using Microsoft.EntityFrameworkCore;
-using Spectre.Console;
 
 namespace AssimilationSoftware.Buildster.CLI.Controllers;
 
@@ -10,10 +9,12 @@ public class EnvironmentsController
 {
     private DbContextOptions<BuildsContext> _contextOptions;
     private readonly IStatusWriter _statusWriter;
+    private readonly ITableWriter _tableWriter;
 
-    public EnvironmentsController(IStatusWriter statusWriter, DbContextOptions<BuildsContext>? dbContextOptions = null)
+    public EnvironmentsController(IStatusWriter statusWriter, ITableWriter tableWriter, DbContextOptions<BuildsContext>? dbContextOptions = null)
     {
         _statusWriter = statusWriter;
+        _tableWriter = tableWriter;
         if (dbContextOptions == null)
         {
             _contextOptions = new DbContextOptionsBuilder<BuildsContext>()
@@ -106,15 +107,23 @@ public class EnvironmentsController
                 rowData[key] = paths;
             }
 
-            var table = new Spectre.Console.Table();
-            table.AddColumns("Project", "Machine", "Integration", "Testing", "Production");
+            List<TableRow> rows = [];
             foreach (var row in rowData)
             {
-                table.AddRow(row.Key.Project, row.Key.Machine, row.Value.Integration, row.Value.Testing, row.Value.Production);
+                rows.Add(new TableRow(
+                [
+                    new TableCell(row.Key.Project),
+                    new TableCell(row.Key.Machine),
+                    new TableCell(row.Value.Integration),
+                    new TableCell(row.Value.Testing),
+                    new TableCell(row.Value.Production)
+                ]));
             }
             if (rowData.Count > 0)
             {
-                AnsiConsole.Write(table);
+                _tableWriter.Write(new TableDescription(
+                    ["Project", "Machine", "Integration", "Testing", "Production"],
+                    rows));
             }
             else
             {

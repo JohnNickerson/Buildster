@@ -2,7 +2,6 @@ using AssimilationSoftware.Buildster.Core;
 using AssimilationSoftware.Buildster.Core.Interfaces;
 using AssimilationSoftware.Buildster.Core.Model;
 using Microsoft.EntityFrameworkCore;
-using Spectre.Console;
 
 namespace AssimilationSoftware.Buildster.CLI.Controllers;
 
@@ -10,10 +9,12 @@ public class MachinesController
 {
     private DbContextOptions<BuildsContext> _contextOptions;
     private readonly IStatusWriter _statusWriter;
+    private readonly ITableWriter _tableWriter;
 
-    public MachinesController(IStatusWriter statusWriter, DbContextOptions<BuildsContext>? dbContextOptions = null)
+    public MachinesController(IStatusWriter statusWriter, ITableWriter tableWriter, DbContextOptions<BuildsContext>? dbContextOptions = null)
     {
         _statusWriter = statusWriter;
+        _tableWriter = tableWriter;
         if (dbContextOptions == null)
         {
             _contextOptions = new DbContextOptionsBuilder<BuildsContext>()
@@ -90,13 +91,12 @@ public class MachinesController
     {
         using (var context = new BuildsContext(_contextOptions))
         {
-            var table = new Table();
-            table.AddColumns("Machine", "Description");
+            List<TableRow> rows = [];
             foreach (var machine in context.Machines)
             {
-                table.AddRow(machine.Name, machine.Description ?? string.Empty);
+                rows.Add(new TableRow([new TableCell(machine.Name), new TableCell(machine.Description ?? string.Empty)]));
             }
-            AnsiConsole.Write(table);
+            _tableWriter.Write(new TableDescription(["Machine", "Description"], rows));
         }
         return 0;
     }

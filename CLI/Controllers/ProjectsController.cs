@@ -2,7 +2,6 @@ using AssimilationSoftware.Buildster.Core;
 using AssimilationSoftware.Buildster.Core.Interfaces;
 using AssimilationSoftware.Buildster.Core.Model;
 using Microsoft.EntityFrameworkCore;
-using Spectre.Console;
 
 namespace AssimilationSoftware.Buildster.CLI.Controllers;
 
@@ -10,10 +9,12 @@ public class ProjectsController
 {
     private DbContextOptions<BuildsContext> _contextOptions;
     private readonly IStatusWriter _statusWriter;
+    private readonly ITableWriter _tableWriter;
 
-    public ProjectsController(IStatusWriter statusWriter, DbContextOptions<BuildsContext>? dbContextOptions = null)
+    public ProjectsController(IStatusWriter statusWriter, ITableWriter tableWriter, DbContextOptions<BuildsContext>? dbContextOptions = null)
     {
         _statusWriter = statusWriter;
+        _tableWriter = tableWriter;
         if (dbContextOptions == null)
         {
             _contextOptions = new DbContextOptionsBuilder<BuildsContext>()
@@ -119,15 +120,16 @@ public class ProjectsController
     {
         using (var context = new BuildsContext(_contextOptions))
         {
-            Table table = new Table();
+            string[] columns;
             if (verbose)
             {
-                table.AddColumns("Project", "Description", "Machine", "Path");
+                columns = ["Project", "Description", "Machine", "Path"];
             }
             else
             {
-                table.AddColumns("Project", "Path");
+                columns = ["Project", "Path"];
             }
+            List<TableRow> rows = [];
             bool firstRow = true;
             foreach (var proj in context.Projects.OrderBy(p => p.Name))
             {
@@ -137,7 +139,7 @@ public class ProjectsController
                 }
                 else
                 {
-                    table.AddEmptyRow();
+                    rows.Add(TableRow.Separator);
                 }
                 if (verbose)
                 {
@@ -146,22 +148,34 @@ public class ProjectsController
                     {
                         if (row1)
                         {
-                            table.AddRow(proj.Name, proj.Description ?? string.Empty, path.Machine?.Name ?? string.Empty, path.Path);
+                            rows.Add(new TableRow(
+                            [
+                                new TableCell(proj.Name),
+                                new TableCell(proj.Description ?? string.Empty),
+                                new TableCell(path.Machine?.Name ?? string.Empty),
+                                new TableCell(path.Path)
+                            ]));
                             row1 = false;
                         }
                         else
                         {
-                            table.AddRow(string.Empty, string.Empty, path.Machine?.Name ?? string.Empty, path.Path);
+                            rows.Add(new TableRow(
+                            [
+                                new TableCell(string.Empty),
+                                new TableCell(string.Empty),
+                                new TableCell(path.Machine?.Name ?? string.Empty),
+                                new TableCell(path.Path)
+                            ]));
                         }
                     }
                 }
                 else
                 {
                     var path = context.FindProjectPath(proj, System.Environment.MachineName);
-                    table.AddRow(proj.Name, path?.Path ?? "(no path found)");
+                    rows.Add(new TableRow([new TableCell(proj.Name), new TableCell(path?.Path ?? "(no path found)")]));
                 }
             }
-            AnsiConsole.Write(table);
+            _tableWriter.Write(new TableDescription(columns, rows));
         }
         return 0;
     }
