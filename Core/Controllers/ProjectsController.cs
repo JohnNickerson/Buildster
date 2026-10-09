@@ -3,7 +3,7 @@ using AssimilationSoftware.Buildster.Core.Interfaces;
 using AssimilationSoftware.Buildster.Core.Model;
 using Microsoft.EntityFrameworkCore;
 
-namespace AssimilationSoftware.Buildster.CLI.Controllers;
+namespace AssimilationSoftware.Buildster.Core.Controllers;
 
 public class ProjectsController
 {
@@ -180,7 +180,7 @@ public class ProjectsController
         return 0;
     }
 
-    internal int SetCopyright(string projectName, string companyName, string yearString)
+    public int SetCopyright(string projectName, string companyName, string yearString)
     {
         using (var context = new BuildsContext(_contextOptions))
         {

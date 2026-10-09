@@ -1,5 +1,5 @@
 ﻿using System.Reflection;
-using AssimilationSoftware.Buildster.CLI.Controllers;
+using AssimilationSoftware.Buildster.Core.Controllers;
 using AssimilationSoftware.Buildster.CLI.Options;
 using AssimilationSoftware.Buildster.Core;
 using AssimilationSoftware.Buildster.Core.Model;

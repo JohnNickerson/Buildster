@@ -3,7 +3,7 @@ using AssimilationSoftware.Buildster.Core.Interfaces;
 using AssimilationSoftware.Buildster.Core.Model;
 using Microsoft.EntityFrameworkCore;
 
-namespace AssimilationSoftware.Buildster.CLI.Controllers;
+namespace AssimilationSoftware.Buildster.Core.Controllers;
 
 public class EnvironmentsController
 {
@@ -72,7 +72,7 @@ public class EnvironmentsController
         }
     }
 
-    internal int List(string? projectName = null, string? machineName = null)
+    public int List(string? projectName = null, string? machineName = null)
     {
         using (var context = new BuildsContext(_contextOptions))
         {

@@ -3,7 +3,7 @@ using AssimilationSoftware.Buildster.Core.Interfaces;
 using AssimilationSoftware.Buildster.Core.Model;
 using Microsoft.EntityFrameworkCore;
 
-namespace AssimilationSoftware.Buildster.CLI.Controllers;
+namespace AssimilationSoftware.Buildster.Core.Controllers;
 
 public class PackagesController
 {
@@ -93,7 +93,7 @@ public class PackagesController
         return 0;
     }
 
-    internal void Delete(string projectName, int packageId, string? packageSource)
+    public void Delete(string projectName, int packageId, string? packageSource)
     {
         using (var context = new BuildsContext(_contextOptions))
         {

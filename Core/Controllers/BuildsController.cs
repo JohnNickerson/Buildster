@@ -4,7 +4,7 @@ using AssimilationSoftware.Buildster.Core.Model;
 using AssimilationSoftware.Buildster.Core.Utils;
 using Microsoft.EntityFrameworkCore;
 
-namespace AssimilationSoftware.Buildster.CLI.Controllers;
+namespace AssimilationSoftware.Buildster.Core.Controllers;
 
 public class BuildsController
 {
