@@ -2,11 +2,9 @@
 using AssimilationSoftware.Buildster.Core.Controllers;
 using AssimilationSoftware.Buildster.CLI.Options;
 using AssimilationSoftware.Buildster.Core;
-using AssimilationSoftware.Buildster.Core.Model;
 using CommandLine;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Diagnostics;
-using Spectre.Console;
+using AssimilationSoftware.Buildster.CLI.Views;
 namespace AssimilationSoftware.Buildster.CLI;
 
 public class Program

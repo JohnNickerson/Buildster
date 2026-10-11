@@ -1,6 +1,6 @@
 using AssimilationSoftware.Buildster.Core.Interfaces;
 
-namespace AssimilationSoftware.Buildster.CLI;
+namespace AssimilationSoftware.Buildster.CLI.Views;
 
 public class ConsoleStatusWriter : IStatusWriter
 {

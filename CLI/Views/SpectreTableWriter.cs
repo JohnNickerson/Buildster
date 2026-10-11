@@ -2,7 +2,7 @@ using AssimilationSoftware.Buildster.Core.Interfaces;
 using Spectre.Console;
 using Spectre.Console.Rendering;
 
-namespace AssimilationSoftware.Buildster.CLI;
+namespace AssimilationSoftware.Buildster.CLI.Views;
 
 public sealed class SpectreTableWriter : ITableWriter
 {
