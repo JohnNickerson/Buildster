@@ -15,7 +15,7 @@ namespace Core.Migrations
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "10.0.9");
+            modelBuilder.HasAnnotation("ProductVersion", "10.0.11");
 
             modelBuilder.Entity("AssimilationSoftware.Buildster.Core.Model.Build", b =>
                 {
@@ -25,6 +25,9 @@ namespace Core.Migrations
 
                     b.Property<int?>("EnvironmentId")
                         .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("LastPromoted")
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("Notes")
                         .HasColumnType("TEXT");

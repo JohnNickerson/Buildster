@@ -54,7 +54,7 @@ public class PromotionTests
         {
             var build = context.FindDeployedBuild("TestProject", "Testing");
             Assert.NotNull(build);
-            //Assert.True(beforePromotionTimestamp < build.LastPromoted, "Last promoted date was not updated");
+            Assert.True(beforePromotionTimestamp < build.LastPromoted, "Last promoted date was not updated");
         }
     }
 }
