@@ -43,23 +43,24 @@ public class BuildsController
             var build = new Build()
             {
                 Timestamp = buildDate ?? DateTime.Now,
+                LastPromoted = DateTime.Now,
                 Version = version,
                 Environment = integration,
                 Notes = description,
                 Project = project
             };
-            var path = context.FindProjectPath(project, System.Environment.MachineName);
-            if (path is null)
-            {
-                _statusWriter.Write($"Cannot find a path for project {project.Name} on this machine.");
-                return 0;
-            }
             var buildVersion = new VersionNumber(version);
             // Reject any build currently in the environment.
             context.Builds.RemoveRange(context.Builds.Where(b => b.ProjectId == project.ProjectId && b.EnvironmentId == integration.EnvironmentId));
 
             if (!dataOnly)
             {
+                var path = context.FindProjectPath(project, System.Environment.MachineName);
+                if (path is null)
+                {
+                    _statusWriter.Write($"Cannot find a path for project {project.Name} on this machine.");
+                    return 0;
+                }
                 VersionInfo.Update(path.Path, buildVersion, _statusWriter);
                 // Add tag to source control, push tag to origin if present
                 GitUtils.Tag(path.Path, buildVersion, _statusWriter);
@@ -244,7 +245,7 @@ public class BuildsController
         {
             return new TableCell("-");
         }
-        return new TableCell($"Version: {build.Version}\nDate: {build.Timestamp:yyyy-MM-dd}\nNotes: {build.Notes}", IsFramed: true);
+        return new TableCell($"Version: {build.Version}\nCreated: {build.Timestamp:yyyy-MM-dd}\nPromoted: {build.LastPromoted:yyyy-MM-dd}\nNotes: {build.Notes}", IsFramed: true);
     }
 
 }
