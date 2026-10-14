@@ -32,3 +32,5 @@ The application is targeted for use in Windows environments, with cross-platform
 	- Refactoring for testability.
 - 2026-10-07: Build 0.6.4.2
 	- Fix build search display.
+- 2026-10-14: Build 0.6.5.0
+	- Add LastPromoted date.
