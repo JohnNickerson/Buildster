@@ -9,7 +9,9 @@ public class Build
     public string? Notes { get; set; }
     
     public required DateTime Timestamp { get; set; }
-    
+
+    public DateTime LastPromoted { get; set; }
+
     public int? EnvironmentId { get; set; }
     public Environment? Environment { get; set; }
 

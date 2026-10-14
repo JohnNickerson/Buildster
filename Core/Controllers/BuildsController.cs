@@ -152,6 +152,7 @@ public class BuildsController
                 return 1;
             }
             build.EnvironmentId = environment?.EnvironmentId;
+            build.LastPromoted = DateTime.Now;
             buildRepo.Update(build);
             buildRepo.SaveChanges();
             if (!dataOnly)
