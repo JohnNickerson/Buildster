@@ -34,3 +34,5 @@ The application is targeted for use in Windows environments, with cross-platform
 	- Fix build search display.
 - 2026-10-14: Build 0.6.5.0
 	- Add LastPromoted date.
+- 2026-10-21: Build 0.6.5.1
+	- Set LastPromoted date for new builds.
