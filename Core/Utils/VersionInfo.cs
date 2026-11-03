@@ -318,8 +318,8 @@ namespace AssimilationSoftware.Buildster.Core.Utils
                 var companyNode = xmlDoc.SelectSingleNode(xPath);
                 if (companyNode != null)
                 {
-                    statusWriter?.Write($"Replacing {companyNode.InnerText} in {file} with {newCompany}");
-                    companyNode.InnerText = newCompany.ToString();
+                    statusWriter?.Write($"Replacing {companyNode.InnerText} in {file} with {company}");
+                    companyNode.InnerText = company.ToString();
                     xmlDoc.Save(file);
                 }
             }
