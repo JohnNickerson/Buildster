@@ -36,3 +36,5 @@ The application is targeted for use in Windows environments, with cross-platform
 	- Add LastPromoted date.
 - 2026-10-21: Build 0.6.5.1
 	- Set LastPromoted date for new builds.
+- 2026-11-04: Build 0.6.5.2
+	- Use correct company name string for SDK project files.
