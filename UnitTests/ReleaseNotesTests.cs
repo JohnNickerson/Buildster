@@ -3,7 +3,7 @@ using System.IO.Abstractions.TestingHelpers;
 using Xunit;
 using AssimilationSoftware.Buildster.Core.Utils;
 
-namespace AssimilationSoftware.Buildster.Tests
+namespace AssimilationSoftware.Buildster.UnitTests
 {
     public class ReleaseNotesTests
     {
