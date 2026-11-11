@@ -62,15 +62,16 @@ public class BuildsController
                     return 0;
                 }
                 VersionInfo.Update(path.Path, buildVersion, _statusWriter);
-                // Add tag to source control, push tag to origin if present
-                GitUtils.Tag(path.Path, buildVersion, _statusWriter);
                 // Update copyright if needed
                 var company = VersionInfo.GetCompany(path.Path, _statusWriter).FirstOrDefault() ?? string.Empty;
                 VersionInfo.UpdateCopyright(path.Path, company, DateTime.Now.Year, _statusWriter);
                 // Add release notes
                 ReleaseNotes.AppendNotes(path.Path, DateTime.Now, buildVersion, description?.Split(['.'], StringSplitOptions.RemoveEmptyEntries) ?? []);
+                // TODO: Check in project files and release notes. eg:
+                // GitUtils.Commit(path.Path, "chore: Update release notes and version numbers");
+                // Add tag to source control, push tag to origin if present
+                GitUtils.Tag(path.Path, buildVersion, _statusWriter);
                 // TODO: build the actual packages
-                // (first need to store package info in the database)
             }
 
             context.Builds.Add(build);
