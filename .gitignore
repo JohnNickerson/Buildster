@@ -3,6 +3,8 @@ obj/
 .vs
 *.suo
 *.user
+.agents/
+.scratch/
 packages/
 appsettings.*.json
 *.bat
